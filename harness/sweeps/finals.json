@@ -1,0 +1,8 @@
+{
+  "opus_cm": {"cmr": {"model": "claude-opus-5"}},
+  "dusk_lycanroc": {
+    "red_cm": "players.codemaster_lycanroc.AICodemaster",
+    "red_g": "players.guesser_lycanroc.AIGuesser",
+    "cmr": {"model": "claude-opus-5"}
+  }
+}

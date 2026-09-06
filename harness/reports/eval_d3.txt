@@ -1,0 +1,58 @@
+====================================================================
+obirdy_cm_plus_stranger_g
+====================================================================
+  games                  4  (completed 4, errored 0)
+  word pools             default
+
+SINGLE TEAM  (score = turns to find all 9 red, loss = 25)
+  games                  4
+  mean score             6.75  95% CI [5.23, 8.27]  (sd 0.96)
+  score range            6.00 - 8.00
+  win rate               100.0%   (4/4, 95% CI 51.0% - 100.0%)
+  turns when won         6.75 (n=4)
+  mean red words found   9.00
+  assassin rate          0.0%   (0/4, 95% CI 0.0% - 49.0%)
+
+ROBUSTNESS
+  clues issued           27
+  illegal clues          0  (0.0%)  <- must be 0
+  assassin rate (all)    0.0%   (0/4, 95% CI 0.0% - 49.0%)
+
+LATENCY  (seconds per agent call)
+  calls                  98
+  mean / p50 / p90       2.9962 / 0.8106 / 9.7476
+  p95 / p99 / max        10.6554 / 11.9589 / 13.1900
+    red_cm               n=27     p50=9.1127 p95=11.6556 max=13.1900
+    red_g                n=71     p50=0.0000 p95=2.1514 max=3.2526
+
+  wall clock / game      mean 73.423 s, p95 85.218 s, max 87.662 s
+====================================================================
+====================================================================
+stranger_cm_plus_obirdy_g
+====================================================================
+  games                  4  (completed 4, errored 0)
+  word pools             default
+
+SINGLE TEAM  (score = turns to find all 9 red, loss = 25)
+  games                  4
+  mean score             8.00  95% CI [4.33, 11.67]  (sd 2.31)
+  score range            6.00 - 10.00
+  win rate               100.0%   (4/4, 95% CI 51.0% - 100.0%)
+  turns when won         8.00 (n=4)
+  mean red words found   9.00
+  assassin rate          0.0%   (0/4, 95% CI 0.0% - 49.0%)
+
+ROBUSTNESS
+  clues issued           32
+  illegal clues          0  (0.0%)  <- must be 0
+  assassin rate (all)    0.0%   (0/4, 95% CI 0.0% - 49.0%)
+
+LATENCY  (seconds per agent call)
+  calls                  104
+  mean / p50 / p90       2.2040 / 2.6834 / 4.2210
+  p95 / p99 / max        5.5644 / 6.8168 / 9.2765
+    red_cm               n=32     p50=3.5757 p95=6.6815 max=9.2765
+    red_g                n=72     p50=0.0001 p95=3.9240 max=5.6135
+
+  wall clock / game      mean 57.338 s, p95 74.142 s, max 75.490 s
+====================================================================

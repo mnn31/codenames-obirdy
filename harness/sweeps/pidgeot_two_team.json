@@ -1,0 +1,4 @@
+{
+  "shipped":     {},
+  "no_safety":   {"cmr": {"probe": false, "embed_sensor": false}}
+}

@@ -1,0 +1,30 @@
+wrote results_local/eval_d1_cm.json (6 games)
+====================================================================
+arena: obirdy_cm_heur_g
+====================================================================
+  games                  6  (completed 6, errored 0)
+  word pools             default
+
+SINGLE TEAM  (score = turns to find all 9 red, loss = 25)
+  games                  6
+  mean score             25.00  95% CI [25.00, 25.00]  (sd 0.00)
+  score range            25.00 - 25.00
+  win rate               0.0%   (0/6, 95% CI 0.0% - 39.0%)
+  turns when won         n/a (n=0)
+  mean red words found   4.17
+  assassin rate          100.0%   (6/6, 95% CI 61.0% - 100.0%)
+
+ROBUSTNESS
+  clues issued           47
+  illegal clues          0  (0.0%)  <- must be 0
+  assassin rate (all)    100.0%   (6/6, 95% CI 61.0% - 100.0%)
+
+LATENCY  (seconds per agent call)
+  calls                  131
+  mean / p50 / p90       3.1556 / 0.0001 / 8.9806
+  p95 / p99 / max        9.7944 / 12.7938 / 13.1182
+    red_cm               n=47     p50=8.6357 p95=11.7807 max=13.1182
+    red_g                n=84     p50=0.0001 p95=0.0001 max=0.0004
+
+  wall clock / game      mean 68.913 s, p95 157.810 s, max 174.813 s
+====================================================================

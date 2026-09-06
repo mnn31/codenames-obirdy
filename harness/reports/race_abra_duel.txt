@@ -1,0 +1,4 @@
+config             games    score    95% CI assassin  clue no    cost $
+-----------------------------------------------------------------------
+race_on               12     0.33  win rate    0.250     1.80     1.153
+race_off              12     0.17  win rate    0.167     1.55     1.211

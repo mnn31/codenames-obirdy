@@ -1,0 +1,4 @@
+{
+  "sonnet_cm": {},
+  "opus_cm": {"cmr": {"model": "claude-opus-5"}}
+}

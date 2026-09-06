@@ -1,0 +1,30 @@
+wrote results_local/eval_b_solo_slang.json (10 games)
+====================================================================
+arena: obirdy_solo_slang
+====================================================================
+  games                  10  (completed 10, errored 0)
+  word pools             slang
+
+SINGLE TEAM  (score = turns to find all 9 red, loss = 25)
+  games                  10
+  mean score             7.60  95% CI [6.58, 8.62]  (sd 1.43)
+  score range            6.00 - 11.00
+  win rate               100.0%   (10/10, 95% CI 72.2% - 100.0%)
+  turns when won         7.60 (n=10)
+  mean red words found   9.00
+  assassin rate          0.0%   (0/10, 95% CI 0.0% - 27.8%)
+
+ROBUSTNESS
+  clues issued           76
+  illegal clues          0  (0.0%)  <- must be 0
+  assassin rate (all)    0.0%   (0/10, 95% CI 0.0% - 27.8%)
+
+LATENCY  (seconds per agent call)
+  calls                  255
+  mean / p50 / p90       3.3719 / 2.3751 / 8.8193
+  p95 / p99 / max        9.6729 / 10.9807 / 13.1453
+    red_cm               n=76     p50=8.3132 p95=10.5790 max=13.1453
+    red_g                n=179    p50=0.0001 p95=3.8231 max=5.2906
+
+  wall clock / game      mean 85.999 s, p95 108.623 s, max 119.779 s
+====================================================================

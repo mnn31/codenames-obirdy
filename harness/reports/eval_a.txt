@@ -1,0 +1,30 @@
+wrote results_local/eval_a_solo_default.json (15 games)
+====================================================================
+arena: obirdy_solo_default
+====================================================================
+  games                  15  (completed 15, errored 0)
+  word pools             default
+
+SINGLE TEAM  (score = turns to find all 9 red, loss = 25)
+  games                  15
+  mean score             6.93  95% CI [6.36, 7.51]  (sd 1.03)
+  score range            5.00 - 9.00
+  win rate               100.0%   (15/15, 95% CI 79.6% - 100.0%)
+  turns when won         6.93 (n=15)
+  mean red words found   9.00
+  assassin rate          0.0%   (0/15, 95% CI 0.0% - 20.4%)
+
+ROBUSTNESS
+  clues issued           104
+  illegal clues          0  (0.0%)  <- must be 0
+  assassin rate (all)    0.0%   (0/15, 95% CI 0.0% - 20.4%)
+
+LATENCY  (seconds per agent call)
+  calls                  368
+  mean / p50 / p90       3.4744 / 2.6649 / 9.3139
+  p95 / p99 / max        9.7365 / 12.9048 / 15.4007
+    red_cm               n=104    p50=8.8079 p95=12.2757 max=15.4007
+    red_g                n=264    p50=0.0001 p95=3.8011 max=6.8843
+
+  wall clock / game      mean 85.248 s, p95 105.033 s, max 109.697 s
+====================================================================

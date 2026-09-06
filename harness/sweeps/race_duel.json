@@ -1,0 +1,4 @@
+{
+  "race_on":  {"cmr": {"race_mode": true}},
+  "race_off": {"cmr": {"race_mode": false}}
+}

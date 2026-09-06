@@ -1,0 +1,48 @@
+NOTE ON PROVENANCE
+This is the eval-A-protocol run of the config actually on main: sonnet,
+single team, default pool, seeds 0-14, no kwargs overrides.  It was collected
+as the control arm of the finalist sweep (harness/sweeps/finalists.json,
+arm "pidgey_defaults"), which is byte-identical to the shipped defaults --
+the only later change was the CLAIMED_SLACK default going 0 -> 1 -> 0.
+
+VERDICT: 7.20 does NOT beat the Pidgey incumbent (6.93).  The intervals
+overlap heavily, so this is not a demonstrated regression either; it is
+simply not a demonstrated improvement.  Pidgeotto is therefore NOT shipped
+as a score win -- see docs/versions.md.
+
+====================================================================
+eval A -- obirdy solo, default pool, 15 seeds (SHIPPED config)
+====================================================================
+  games                  15  (completed 15, errored 0)
+  word pools             default
+
+SINGLE TEAM  (score = turns to find all 9 red, loss = 25)
+  games                  15
+  mean score             7.20  95% CI [6.64, 7.76]  (sd 1.01)
+  score range            6.00 - 9.00
+  win rate               100.0%   (15/15, 95% CI 79.6% - 100.0%)
+  turns when won         7.20 (n=15)
+  mean red words found   9.00
+  assassin rate          0.0%   (0/15, 95% CI 0.0% - 20.4%)
+
+ROBUSTNESS
+  clues issued           108
+  illegal clues          0  (0.0%)  <- must be 0
+  assassin rate (all)    0.0%   (0/15, 95% CI 0.0% - 20.4%)
+  clue number red_cm     mean 1.34   (1x73 2x33 3x2)
+
+LATENCY  (seconds per agent call)
+  calls                  371
+  mean / p50 / p90       3.7158 / 2.8231 / 9.7050
+  p95 / p99 / max        11.0930 / 13.1516 / 13.9539
+    red_cm               n=108    p50=9.0813 p95=12.7786 max=13.9539
+    red_g                n=263    p50=0.0001 p95=3.9337 max=5.5034
+
+  wall clock / game      mean 91.917 s, p95 109.247 s, max 110.668 s
+
+API USAGE  (our evaluation spend, estimated)
+  models                 claude-sonnet-5 x540
+  calls / retries / fail 540 / 1 / 0
+  tokens in / out        208690 / 126155
+  estimated cost         $2.5184  ($0.1679 per game)
+====================================================================

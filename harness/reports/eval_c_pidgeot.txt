@@ -1,0 +1,3 @@
+config             games    score    95% CI assassin  clue no    cost $
+-----------------------------------------------------------------------
+pidgeot               20     0.65  win rate    0.050     1.88     3.056

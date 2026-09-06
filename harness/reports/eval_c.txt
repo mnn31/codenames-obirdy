@@ -1,0 +1,35 @@
+wrote results_local/eval_c_duel.json (10 games)
+====================================================================
+arena: obirdy_vs_heuristic
+====================================================================
+  games                  10  (completed 10, errored 0)
+  word pools             default
+
+TWO TEAMS
+  games                  10
+  red win rate           70.0%   (7/10, 95% CI 39.7% - 89.2%)
+  blue win rate          30.0%   (3/10, 95% CI 10.8% - 60.3%)
+  mean turns/game        12.50  95% CI [11.14, 13.86]
+  assassin rate          0.0%   (0/10, 95% CI 0.0% - 27.8%)
+
+  win rate by pairing
+    codemaster + guesser                                             games   wins win rate          
+    codemaster_obirdy.AICodemaster + guesser_obirdy.AIGuesser           10      7 70.0% [39.7%, 89.2%]
+    codemaster_heuristic.AICodemaster + guesser_heuristic.AIGuesser     10      3 30.0% [10.8%, 60.3%]
+
+ROBUSTNESS
+  clues issued           125
+  illegal clues          0  (0.0%)  <- must be 0
+  assassin rate (all)    0.0%   (0/10, 95% CI 0.0% - 27.8%)
+
+LATENCY  (seconds per agent call)
+  calls                  422
+  mean / p50 / p90       1.8693 / 0.0001 / 8.3016
+  p95 / p99 / max        9.3027 / 10.8093 / 12.5514
+    blue_cm              n=59     p50=0.0105 p95=0.0174 max=0.0227
+    blue_g               n=127    p50=0.0000 p95=0.0001 max=0.0001
+    red_cm               n=66     p50=8.7253 p95=11.0739 max=12.5514
+    red_g                n=170    p50=0.0001 p95=4.0543 max=5.6665
+
+  wall clock / game      mean 78.902 s, p95 93.341 s, max 96.958 s
+====================================================================

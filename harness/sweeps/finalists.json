@@ -1,0 +1,4 @@
+{
+  "pidgey_defaults": {},
+  "pidgeotto":       {"cmr": {"bonus_guess_weight": 0.55, "civilian_penalty": 0.45, "claimed_slack": 1}}
+}

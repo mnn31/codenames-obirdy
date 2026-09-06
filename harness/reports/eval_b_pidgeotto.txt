@@ -1,0 +1,43 @@
+NOTE ON PROVENANCE
+Measured on the WITHDRAWN aggressive clue-number variant (bonus 0.55 /
+civilian 0.45 / claimed_slack 1), not on the config now on main.  Recorded
+because it is a real sonnet measurement and it beats the Pidgey incumbent
+(7.60), but it does NOT certify the shipped config.  Eval B must be re-run
+once API credits are restored.
+
+====================================================================
+eval B -- obirdy solo, slang pool, 10 seeds (withdrawn variant)
+====================================================================
+  games                  10  (completed 10, errored 0)
+  word pools             slang
+
+SINGLE TEAM  (score = turns to find all 9 red, loss = 25)
+  games                  10
+  mean score             7.00  95% CI [5.88, 8.12]  (sd 1.56)
+  score range            6.00 - 11.00
+  win rate               100.0%   (10/10, 95% CI 72.2% - 100.0%)
+  turns when won         7.00 (n=10)
+  mean red words found   9.00
+  assassin rate          0.0%   (0/10, 95% CI 0.0% - 27.8%)
+
+ROBUSTNESS
+  clues issued           70
+  illegal clues          0  (0.0%)  <- must be 0
+  assassin rate (all)    0.0%   (0/10, 95% CI 0.0% - 27.8%)
+  clue number red_cm     mean 1.53   (1x39 2x25 3x6)
+
+LATENCY  (seconds per agent call)
+  calls                  256
+  mean / p50 / p90       3.1036 / 1.8906 / 8.7306
+  p95 / p99 / max        9.2467 / 11.0711 / 16.4625
+    red_cm               n=70     p50=8.4810 p95=10.7755 max=16.4625
+    red_g                n=186    p50=0.0001 p95=3.4075 max=6.0100
+
+  wall clock / game      mean 79.462 s, p95 105.510 s, max 116.135 s
+
+API USAGE  (our evaluation spend, estimated)
+  models                 claude-sonnet-5 x350
+  calls / retries / fail 350 / 0 / 0
+  tokens in / out        146466 / 96455
+  estimated cost         $1.8862  ($0.1886 per game)
+====================================================================

@@ -1,0 +1,15 @@
+upstream-game/
+upstream-2026/
+__pycache__/
+*.pyc
+.DS_Store
+.env
+*.log
+results/
+results.txt
+bot_results.txt
+bot_results_new_style.txt
+results_local/
+data/
+# anything with the tournament key substituted in -- never commit it
+submission/*keyed*

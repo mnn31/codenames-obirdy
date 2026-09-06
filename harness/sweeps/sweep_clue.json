@@ -1,0 +1,4 @@
+{
+  "sweep_on":  {"cmr": {"bonus_guess_weight": 0.55, "civilian_penalty": 0.45, "claimed_slack": 1}},
+  "sweep_off": {"cmr": {"bonus_guess_weight": 0.55, "civilian_penalty": 0.45, "claimed_slack": 1, "sweep": false}}
+}

@@ -1,0 +1,97 @@
+CROSS-PAIRING WITH ABRA -- ATTEMPT VOIDED, NOT A MEASUREMENT
+
+Both runs below executed with an exhausted API balance: every Anthropic call
+returned 400 "credit balance is too low", so the oBirdy agent in each pairing
+spent the whole game on its deterministic offline fallback (a letter-overlap
+similarity table).  The scores are what a semantically blind agent scores.
+They say nothing about cross-pairing generality and MUST NOT be read as such.
+
+The runs are kept for the one thing they do establish, which the harness could
+not otherwise test end to end:
+
+  ROBUSTNESS UNDER TOTAL API FAILURE
+  * 261 consecutive failed API calls across 16 games
+  * 0 crashes, 0 malformed clues, 0 illegal clues, 0 games unfinished
+  * every game terminated normally within the turn cap
+
+That is the disqualification-avoidance contract holding under the worst
+failure the competition could throw at us, verified by accident.
+
+The actual cross-pairing question -- does an oBirdy clue survive being handed
+to a semantic stranger, and can oBirdy decode a stranger's clue -- is still
+UNMEASURED.  Re-run once credits are restored:
+
+  python -m harness.arena --single-team --seeds 0-7 --jobs 4 \
+    --red-cm players.codemaster_obirdy.AICodemaster \
+    --red-g  players.guesser_glove.AIGuesser
+  python -m harness.arena --single-team --seeds 0-7 --jobs 4 \
+    --red-cm players.codemaster_glove.AICodemaster \
+    --red-g  players.guesser_obirdy.AIGuesser
+
+For reference, Abra paired with itself (fully offline, no API involved) scores
+6.80 over 10 default-pool seeds with a 10% assassin rate and 0 illegal clues,
+so it is a genuinely competent stranger rather than a pushover.
+
+====================================================================
+VOID: oBirdy CM + Abra guesser (API dead)
+====================================================================
+  games                  8  (completed 8, errored 0)
+  word pools             default
+
+SINGLE TEAM  (score = turns to find all 9 red, loss = 25)
+  games                  8
+  mean score             25.00  95% CI [25.00, 25.00]  (sd 0.00)
+  score range            25.00 - 25.00
+  win rate               0.0%   (0/8, 95% CI 0.0% - 32.4%)
+  turns when won         n/a (n=0)
+  mean red words found   2.88
+  assassin rate          100.0%   (8/8, 95% CI 67.6% - 100.0%)
+
+ROBUSTNESS
+  clues issued           41
+  illegal clues          0  (0.0%)  <- must be 0
+  assassin rate (all)    100.0%   (8/8, 95% CI 67.6% - 100.0%)
+  clue number red_cm     mean 1.00   (1x41)
+
+LATENCY  (seconds per agent call)
+  calls                  121
+  mean / p50 / p90       0.2244 / 0.0001 / 0.6780
+  p95 / p99 / max        0.9004 / 1.5796 / 1.5833
+    red_cm               n=41     p50=0.4255 p95=1.5768 max=1.5833
+    red_g                n=80     p50=0.0001 p95=0.0343 max=0.7014
+
+  wall clock / game      mean 3.403 s, p95 4.929 s, max 5.159 s
+====================================================================
+  API calls attempted 123, failed 123  <- why this run is void
+
+====================================================================
+VOID: Abra CM + oBirdy guesser (API dead)
+====================================================================
+  games                  8  (completed 8, errored 0)
+  word pools             default
+
+SINGLE TEAM  (score = turns to find all 9 red, loss = 25)
+  games                  8
+  mean score             23.25  95% CI [19.11, 27.39]  (sd 4.95)
+  score range            11.00 - 25.00
+  win rate               12.5%   (1/8, 95% CI 2.2% - 47.1%)
+  turns when won         11.00 (n=1)
+  mean red words found   5.38
+  assassin rate          75.0%   (6/8, 95% CI 40.9% - 92.9%)
+
+ROBUSTNESS
+  clues issued           69
+  illegal clues          0  (0.0%)  <- must be 0
+  assassin rate (all)    75.0%   (6/8, 95% CI 40.9% - 92.9%)
+  clue number red_cm     mean 2.61   (1x7 2x22 3x31 4x9)
+
+LATENCY  (seconds per agent call)
+  calls                  216
+  mean / p50 / p90       0.1773 / 0.0038 / 0.5480
+  p95 / p99 / max        0.8716 / 1.3632 / 3.0082
+    red_cm               n=69     p50=0.0042 p95=0.4695 max=0.8311
+    red_g                n=147    p50=0.0001 p95=0.9749 max=3.0082
+
+  wall clock / game      mean 4.800 s, p95 7.516 s, max 7.749 s
+====================================================================
+  API calls attempted 138, failed 138  <- why this run is void

@@ -1,0 +1,76 @@
+themed boards: is the clue number collapsing because the board is dense?
+=======================================================================
+python -m harness.themed_probe          (20 seeds/pool, offline, mocked LLM)
+
+The organisers ran us on a board of 25 gaming / internet-culture words and saw
+18 consecutive number-1 clues and a 19-turn solo win, while the baseline GPT
+team cleared it with INTERNET 4 / COMPUTER 3 / SPACE 2.
+
+  top2-own      over the similarity table's clue vocabulary, how often the two
+                board words a clue pulls hardest on are BOTH ours.  Mock-free.
+  own-in-top3   mean own words among a clue's three strongest.  Mock-free.
+  clues         how many clue/board pairs were scorable at all.
+  mock numbers  a full get_clue with brainstorm and panel both stood in for by
+                the table (brainstorm sees only our words, panel ranks all 25).
+  0.29.0        every LLM call returning nothing, which is what their SDK did.
+
+Verdict: the streak is not a property of the board.
+
+* With the brainstorm dead the number is 1 on EVERY pool, the default framework
+  pool included -- 100% of clues, all eight rows.  The no-panel branch takes
+  heuristic candidates, which claim no targets, so its number is
+  min(2, len(targets) or 1, ...) = 1 by construction.  That is the whole
+  18-clue streak, and it is the 0.29.0 regression, not the theme.
+* Give the same board a working panel and the number does not collapse: the
+  organisers' own 25 words come out at mean 2.00 with not one number-1 clue,
+  against 2.05 on the default pool.
+* The density statistic agrees.  Their board is 12.0% top2-own against the
+  default pool's 11.2% -- marginally denser, nowhere near a collapse.
+
+So no pacing change was made.  Loosening the number rule here would spend the
+risk budget the parked `ambitious` preset already failed to earn, against a
+symptom that has a different cause and is now fixed.
+
+SECOND RUN, 2026-08-03, after the board vocabulary was widened
+--------------------------------------------------------------
+The first run carried a caveat: the shipped table's board vocabulary was the
+framework pool plus the slang pool (1008 words), and themed-kitchen and
+themed-sport were almost entirely outside it -- 0 and 114 scorable clue/board
+pairs, so those rows measured table coverage and not board density.  The table
+now covers every themed pool outright, so every row below is a density
+measurement, and the earlier themed rows should be discarded rather than
+compared against.
+
+What that changes: nothing in the verdict, and it removes the last place the
+verdict was resting on missing data.  The themed pools measure 10.0%-13.0%
+top2-own against the default pool's 11.2%, and their mock numbers are 1.90-2.15
+against 2.05 -- the same band, not a collapse.  The old themed rows that looked
+like a collapse (mean 1.10 on themed-sport, 90% of clues at 1) were the mock
+brainstorm having almost no board words it could price, which is the sensor
+being blind, not the board being dense.
+
+The default and slang rows moved slightly too (10.7% -> 11.2%, 32055 -> 32240
+scorable pairs) because the rebuild added 105 clue words and re-fitted the
+codebook.  Both are inside the noise of a 20-seed sample.
+
+before (1008-word board vocabulary)
+pool              top2-own own-in-top3    clues | mock numbers     | 0.29.0 numbers
+default              10.7%       1.05    32055 | mean 2.00, 10% 1 | mean 1.00, 100% are 1
+slang                12.1%       1.09    11008 | mean 2.00,  5% 1 | mean 1.00, 100% are 1
+organiser            12.6%       1.17     3440 | mean 2.00,  0% 1 | mean 1.00, 100% are 1
+themed-gaming         9.5%       0.95     2424 | mean 1.85, 15% 1 | mean 1.00, 100% are 1
+themed-space         19.5%       1.26      461 | mean 1.45, 60% 1 | mean 1.00, 100% are 1
+themed-kitchen        0.0%       0.00        0 | mean 1.25, 90% 1 | mean 1.00, 100% are 1
+themed-music          7.8%       1.08      579 | mean 1.40, 60% 1 | mean 1.00, 100% are 1
+themed-sport          0.0%       0.67      114 | mean 1.10, 90% 1 | mean 1.00, 100% are 1
+
+after (1713-word board vocabulary: 588 pool + 176 themed + 949 generated)
+pool              top2-own own-in-top3    clues | mock numbers     | 0.29.0 numbers
+default              11.2%       1.06    32240 | mean 2.05,  0% 1 | mean 1.00, 100% are 1
+slang                12.4%       1.10    10455 | mean 2.05,  0% 1 | mean 1.00, 100% are 1
+organiser            12.0%       1.09    25640 | mean 2.00,  0% 1 | mean 1.00, 100% are 1
+themed-gaming        11.5%       1.06    27206 | mean 2.00,  5% 1 | mean 1.00, 100% are 1
+themed-space         12.6%       1.09    23589 | mean 1.90, 25% 1 | mean 1.00, 100% are 1
+themed-kitchen       13.0%       1.09    15613 | mean 2.05, 15% 1 | mean 1.00, 100% are 1
+themed-music         11.8%       1.08    20046 | mean 2.15, 15% 1 | mean 1.00, 100% are 1
+themed-sport         10.0%       1.03    28212 | mean 2.05,  0% 1 | mean 1.00, 100% are 1

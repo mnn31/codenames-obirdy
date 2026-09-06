@@ -1,0 +1,46 @@
+NOTE: THIS CONFIG WAS WITHDRAWN
+bonus_guess_weight 0.55 / civilian_penalty 0.45 / claimed_slack 1.
+This variant led the sweep on 20 haiku seeds (6.55 vs 8.35) and on a first
+15-seed sonnet run (6.33, 0 assassins, see results_local/sweep_pidgeotto.json).
+This second, independent 15-seed sonnet run on the same seeds is the run that
+killed it: three assassin losses.  Reading the games, two died on guess 2 or 3
+of a raised clue number walking into an assassin the panel had never ranked,
+so the positional repellence term had nothing to price.  Kept as the evidence
+for holding CLAIMED_SLACK at 0.
+
+====================================================================
+eval A -- WITHDRAWN aggressive clue-number variant, 15 seeds
+====================================================================
+  games                  15  (completed 15, errored 0)
+  word pools             default
+
+SINGLE TEAM  (score = turns to find all 9 red, loss = 25)
+  games                  15
+  mean score             9.80  95% CI [5.38, 14.22]  (sd 7.97)
+  score range            4.00 - 25.00
+  win rate               80.0%   (12/15, 95% CI 54.8% - 93.0%)
+  turns when won         6.00 (n=12)
+  mean red words found   8.33
+  assassin rate          20.0%   (3/15, 95% CI 7.0% - 45.2%)
+
+ROBUSTNESS
+  clues issued           82
+  illegal clues          0  (0.0%)  <- must be 0
+  assassin rate (all)    20.0%   (3/15, 95% CI 7.0% - 45.2%)
+  clue number red_cm     mean 1.71   (1x35 2x36 3x11)
+
+LATENCY  (seconds per agent call)
+  calls                  335
+  mean / p50 / p90       3.0252 / 0.0001 / 9.0920
+  p95 / p99 / max        9.5883 / 11.7832 / 26.5028
+    red_cm               n=82     p50=8.8970 p95=11.5530 max=26.5028
+    red_g                n=253    p50=0.0000 p95=3.8546 max=6.2145
+
+  wall clock / game      mean 67.569 s, p95 97.691 s, max 104.928 s
+
+API USAGE  (our evaluation spend, estimated)
+  models                 claude-sonnet-5 x410
+  calls / retries / fail 410 / 1 / 0
+  tokens in / out        157485 / 96144
+  estimated cost         $1.9146  ($0.1276 per game)
+====================================================================

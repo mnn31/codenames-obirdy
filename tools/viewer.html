@@ -1,0 +1,1069 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>oBirdy Replay Theater</title>
+<style>
+:root{
+  --bg:#0b0e14; --panel:#131722; --panel2:#0f131c; --line:#232a3a;
+  --text:#e6e9ef; --muted:#8b93a7; --dim:#5d6578;
+  --red:#e0524f; --red-deep:#43171b; --red-edge:#8d3230;
+  --blue:#4a86e8; --blue-deep:#152a4d; --blue-edge:#2d5699;
+  --civ:#b39b6d; --civ-deep:#2c2718; --civ-edge:#6d5f3d;
+  --ass:#05060a; --ass-edge:#6a6f7d;
+  --gold:#f4c15d;
+  --tile:#1c2231; --tile-edge:#2b3448;
+  --radius:10px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;height:100%}
+body{
+  background:radial-gradient(1200px 600px at 50% -10%,#182034 0%,var(--bg) 60%);
+  color:var(--text);
+  font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+
+/* ---------- shell ---------- */
+#app{display:flex;flex-direction:column;min-height:100%}
+header.top{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  padding:10px 16px;border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,#151b28,#0f131c);
+}
+.brand{font-weight:700;letter-spacing:.5px;font-size:15px;white-space:nowrap}
+.brand .dot{color:var(--gold)}
+.brand small{display:block;font-weight:400;font-size:10px;color:var(--dim);letter-spacing:1.4px;text-transform:uppercase}
+.top .spacer{flex:1}
+.pill{
+  border:1px solid var(--line);background:var(--panel);border-radius:999px;
+  padding:4px 11px;font-size:12px;color:var(--muted);white-space:nowrap;
+}
+.pill b{color:var(--text);font-weight:600}
+.toggle{
+  border:1px solid var(--line);background:var(--panel);border-radius:8px;
+  padding:6px 11px;font-size:12.5px;color:var(--muted);
+}
+.toggle:hover{border-color:#39455e;color:var(--text)}
+.toggle[aria-pressed="true"]{background:#2a2413;border-color:var(--gold);color:var(--gold)}
+
+.layout{display:flex;flex:1;min-height:0;align-items:stretch}
+
+/* ---------- sidebar ---------- */
+aside{
+  width:264px;flex:0 0 264px;border-right:1px solid var(--line);
+  background:var(--panel2);display:flex;flex-direction:column;min-height:0;
+}
+.side-head{
+  padding:10px 12px 8px;border-bottom:1px solid var(--line);
+  font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--dim);
+  display:flex;align-items:center;gap:8px;
+}
+.side-head .count{margin-left:auto;color:var(--muted);letter-spacing:0}
+#gamelist{overflow-y:auto;flex:1;padding:6px;min-height:0}
+.gcard{
+  display:block;width:100%;text-align:left;border:1px solid transparent;
+  background:transparent;border-radius:var(--radius);padding:8px 10px;margin-bottom:3px;
+}
+.gcard:hover{background:#161c29;border-color:var(--line)}
+.gcard[aria-current="true"]{background:#1b2334;border-color:#3d4b68}
+.gcard .lab{font-weight:600;font-size:13px;display:flex;align-items:center;gap:6px}
+.gcard .lab .badge{
+  margin-left:auto;font-size:9.5px;font-weight:700;letter-spacing:.6px;
+  border-radius:4px;padding:1px 5px;border:1px solid;
+}
+.badge.win-R{color:var(--red);border-color:var(--red-edge);background:#2a1214}
+.badge.win-B{color:var(--blue);border-color:var(--blue-edge);background:#101f38}
+.badge.death{color:#fff;border-color:var(--ass-edge);background:#000}
+.gcard .sub{font-size:11px;color:var(--muted);margin-top:2px}
+.gcard .meta{font-size:10.5px;color:var(--dim);margin-top:3px}
+.dropzone{
+  margin:8px;padding:12px 10px;border:1px dashed #333d52;border-radius:var(--radius);
+  text-align:center;font-size:11.5px;color:var(--dim);
+}
+.dropzone b{color:var(--muted);display:block;margin-bottom:3px;font-size:12px}
+.dropzone label{color:var(--gold);text-decoration:underline;cursor:pointer}
+.dropzone input{display:none}
+body.dragging .dropzone{border-color:var(--gold);color:var(--gold);background:#1d1a10}
+
+/* ---------- main ---------- */
+main{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;padding:14px 16px 18px;gap:11px}
+main > *{width:100%;max-width:860px}
+
+.cluebar{
+  border:1px solid var(--line);border-radius:12px;background:var(--panel);
+  padding:11px 14px;display:flex;align-items:center;gap:14px;min-height:62px;
+  position:relative;overflow:hidden;
+}
+.cluebar::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--dim)}
+.cluebar.team-R::before{background:var(--red)}
+.cluebar.team-B::before{background:var(--blue)}
+.cluebar .who{font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+.cluebar.team-R .who{color:var(--red)}
+.cluebar.team-B .who{color:var(--blue)}
+.cluebar .word{
+  font-size:clamp(20px,3.4vw,30px);font-weight:800;letter-spacing:2px;line-height:1.1;
+  overflow-wrap:anywhere;
+}
+.cluebar .num{
+  font-size:13px;font-weight:800;border:2px solid currentColor;border-radius:8px;
+  min-width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;
+  flex:0 0 auto;
+}
+.cluebar .num[hidden]{display:none}
+.cluebar.team-R .num{color:var(--red)} .cluebar.team-B .num{color:var(--blue)}
+.cluebar .think{margin-left:auto;font-size:11px;color:var(--dim);text-align:right;white-space:nowrap}
+
+/* ---------- board ---------- */
+.boardwrap{position:relative}
+#board{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:7px;
+}
+.tile{
+  position:relative;aspect-ratio:1.85/1;min-height:48px;border-radius:var(--radius);
+  border:1px solid var(--tile-edge);background:linear-gradient(180deg,#212838,#1a2030);
+  display:flex;align-items:center;justify-content:center;padding:4px;
+  text-align:center;font-weight:700;letter-spacing:.6px;
+  font-size:clamp(9px,1.2vw,13px);text-transform:uppercase;
+  transition:transform .18s ease,box-shadow .18s ease,background .3s ease,border-color .3s ease,color .3s ease;
+  overflow-wrap:anywhere;color:#dfe4ee;
+}
+.tile .w{position:relative;z-index:2;line-height:1.15}
+.tile .key-dot{
+  position:absolute;left:5px;top:5px;width:7px;height:7px;border-radius:50%;
+  opacity:0;transition:opacity .2s ease;z-index:3;
+}
+body.spy .tile .key-dot{opacity:.95}
+.key-R{background:var(--red)} .key-B{background:var(--blue)}
+.key-C{background:var(--civ)} .key-A{background:#fff;box-shadow:0 0 0 2px #000}
+
+body.spy .tile.hidden.k-R{background:linear-gradient(180deg,#3a1a1d,#2a1216);border-color:var(--red-edge)}
+body.spy .tile.hidden.k-B{background:linear-gradient(180deg,#16294d,#101d38);border-color:var(--blue-edge)}
+body.spy .tile.hidden.k-C{background:linear-gradient(180deg,#2c2718,#221e12);border-color:var(--civ-edge)}
+body.spy .tile.hidden.k-A{background:repeating-linear-gradient(45deg,#0a0a0c,#0a0a0c 6px,#15151a 6px,#15151a 12px);border-color:var(--ass-edge)}
+
+.tile.done{color:#fff}
+.tile.done.k-R{background:linear-gradient(180deg,var(--red),#a53a38);border-color:#f0716e}
+.tile.done.k-B{background:linear-gradient(180deg,var(--blue),#2f5fae);border-color:#79a6f2}
+.tile.done.k-C{background:linear-gradient(180deg,var(--civ),#8b7748);border-color:#cdb886}
+.tile.done.k-A{background:linear-gradient(180deg,#0d0d12,#000);border-color:#8a90a0;color:#fff}
+.tile.done .w{text-decoration:line-through;text-decoration-thickness:1px;opacity:.92}
+.tile.done.k-A .w{text-decoration:none;letter-spacing:1.4px}
+
+@keyframes flipin{
+  0%{transform:rotateX(0deg) scale(1)}
+  45%{transform:rotateX(88deg) scale(1.04)}
+  100%{transform:rotateX(0deg) scale(1)}
+}
+.tile.just{animation:flipin .42s ease;z-index:4;box-shadow:0 0 0 2px var(--gold),0 6px 22px rgba(0,0,0,.55)}
+
+/* assassin drama */
+#flash{
+  position:fixed;inset:0;pointer-events:none;opacity:0;z-index:60;
+  background:radial-gradient(circle at 50% 45%,rgba(255,255,255,.92),rgba(190,20,20,.55) 35%,rgba(0,0,0,.96) 75%);
+}
+@keyframes bang{0%{opacity:0}8%{opacity:1}45%{opacity:.55}100%{opacity:0}}
+body.boom #flash{animation:bang 1.15s ease forwards}
+@keyframes shakeit{
+  0%,100%{transform:translate(0,0)}
+  15%{transform:translate(-6px,3px)} 30%{transform:translate(5px,-3px)}
+  45%{transform:translate(-4px,-2px)} 60%{transform:translate(4px,2px)}
+  80%{transform:translate(-2px,1px)}
+}
+body.boom .boardwrap{animation:shakeit .5s ease}
+#boomtext{
+  position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+  z-index:61;pointer-events:none;
+  font-size:clamp(30px,7vw,72px);font-weight:900;letter-spacing:8px;color:#fff;
+  text-shadow:0 0 26px rgba(255,60,60,.95);
+}
+body.boom #boomtext{display:flex}
+@media (prefers-reduced-motion:reduce){
+  .tile.just{animation:none}
+  body.boom #flash{animation:none;opacity:.35}
+  body.boom .boardwrap{animation:none}
+}
+
+/* ---------- controls ---------- */
+.controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.controls .btn{
+  border:1px solid var(--line);background:var(--panel);border-radius:9px;
+  min-width:40px;height:36px;padding:0 10px;font-size:14px;color:var(--muted);
+}
+.controls .btn:hover:not(:disabled){border-color:#3d4b68;color:var(--text)}
+.controls .btn:disabled{opacity:.35;cursor:default}
+.controls .btn.play{background:var(--gold);border-color:var(--gold);color:#1b1405;font-weight:800;min-width:52px}
+#scrub{flex:1;min-width:110px;accent-color:var(--gold)}
+.controls .step{font-size:11.5px;color:var(--dim);white-space:nowrap}
+.controls select{
+  background:var(--panel);border:1px solid var(--line);border-radius:8px;
+  padding:7px 8px;font-size:12.5px;color:var(--muted);
+}
+
+/* ---------- scoreboard ---------- */
+.score{display:flex;gap:8px;flex-wrap:wrap}
+.team{
+  flex:1 1 190px;border:1px solid var(--line);border-radius:12px;background:var(--panel);
+  padding:9px 12px;display:flex;align-items:center;gap:10px;position:relative;overflow:hidden;
+}
+.team::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px}
+.team.R::before{background:var(--red)} .team.B::before{background:var(--blue)}
+.team.active{border-color:var(--gold)}
+.team .nm{font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700}
+.team.R .nm{color:var(--red)} .team.B .nm{color:var(--blue)}
+.team .agents{font-size:11px;color:var(--dim);margin-top:1px}
+.team .left{margin-left:auto;text-align:right;line-height:1}
+.team .left b{font-size:23px;font-weight:800;display:block}
+.team .left span{font-size:9.5px;letter-spacing:1.2px;color:var(--dim);text-transform:uppercase}
+.pips{display:flex;gap:2px;margin-top:4px;flex-wrap:wrap}
+.pip{width:9px;height:9px;border-radius:2px;border:1px solid}
+.team.R .pip{border-color:var(--red-edge)} .team.B .pip{border-color:var(--blue-edge)}
+.team.R .pip.on{background:var(--red)} .team.B .pip.on{background:var(--blue)}
+
+/* ---------- log ---------- */
+.logwrap{
+  border:1px solid var(--line);border-radius:12px;background:var(--panel);
+  display:flex;flex-direction:column;min-height:120px;flex:1;overflow:hidden;
+}
+.logwrap h3{
+  margin:0;padding:8px 12px;border-bottom:1px solid var(--line);
+  font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--dim);font-weight:600;
+  display:flex;gap:8px;align-items:center;
+}
+.logwrap h3 .note{margin-left:auto;color:var(--muted);letter-spacing:0;text-transform:none;font-size:11px;font-weight:400}
+#log{overflow-y:auto;padding:4px 0;flex:1;max-height:124px;scroll-behavior:smooth}
+.line{
+  display:flex;gap:9px;padding:3px 12px;font-size:12.5px;color:var(--muted);
+  border-left:3px solid transparent;cursor:pointer;
+}
+.line:hover{background:#171d2b}
+.line .n{color:var(--dim);font-size:10.5px;min-width:22px;text-align:right;padding-top:2px}
+.line.R{border-left-color:rgba(224,82,79,.45)}
+.line.B{border-left-color:rgba(74,134,232,.45)}
+.line.clue{color:var(--text);font-weight:600}
+.line.good .txt{color:#7fd18f}
+.line.bad .txt{color:#e8a06a}
+.line.kill .txt{color:#ff6b6b;font-weight:700}
+.line.now{background:#1d2434;color:var(--text)}
+.line.now .txt{color:var(--text)}
+.line.kill.now .txt{color:#ff6b6b}
+
+.result{
+  border:1px solid var(--line);border-radius:12px;padding:9px 13px;background:var(--panel);
+  font-size:13px;display:none;
+}
+.result.show{display:block}
+.result.R{border-color:var(--red-edge);background:#1e1214}
+.result.B{border-color:var(--blue-edge);background:#101a2c}
+.result b{letter-spacing:.5px}
+
+.hint{font-size:11px;color:var(--dim);text-align:center}
+.hint kbd{
+  border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;
+  padding:0 4px;background:var(--panel);color:var(--muted);font-size:10.5px;
+  font-family:ui-monospace,Menlo,monospace;
+}
+
+/* ---------- selftest ---------- */
+#selftest{padding:16px;max-width:900px;margin:0 auto}
+#selftest h1{font-size:18px;margin:0 0 10px}
+#selftest .row{
+  display:flex;gap:10px;padding:3px 0;font-size:12.5px;
+  font-family:ui-monospace,Menlo,monospace;border-bottom:1px solid #1a2030;
+}
+#selftest .row .st{font-weight:700;min-width:46px}
+#selftest .row.pass .st{color:#7fd18f} #selftest .row.fail .st{color:#ff6b6b}
+#selftest .summary{margin:12px 0;padding:10px 14px;border-radius:10px;font-weight:700;font-size:15px}
+#selftest .summary.pass{background:#12281a;border:1px solid #2f6b40;color:#7fd18f}
+#selftest .summary.fail{background:#2a1214;border:1px solid #8d3230;color:#ff6b6b}
+
+/* On a full window the app owns the viewport: header and game list stay put
+   and only the board column scrolls.  Narrow layouts fall back to page scroll. */
+@media (min-width:901px){
+  html,body{overflow:hidden}
+  #app{height:100vh}
+  .layout{overflow:hidden}
+  main{overflow-y:auto}
+}
+
+/* ---------- narrow / side-panel ---------- */
+@media (max-width:900px){
+  .layout{flex-direction:column}
+  /* the game picker becomes a shelf of cards you swipe, not a tall column */
+  aside{width:auto;flex:0 0 auto;border-right:none;border-bottom:1px solid var(--line)}
+  .side-head{padding:6px 10px 5px}
+  #gamelist{display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;padding:7px}
+  .gcard{flex:0 0 186px;margin-bottom:0;border-color:var(--line)}
+  .dropzone{margin:0 7px 7px;padding:6px 9px;font-size:11px}
+  .dropzone b{display:inline;margin:0}
+  .dropzone .long{display:none}
+  main{padding:11px 12px 16px}
+  .tile{font-size:clamp(8px,2.1vw,12px);min-height:46px}
+  .cluebar .word{font-size:clamp(18px,5vw,26px)}
+  #log{max-height:170px}
+}
+@media (max-width:560px){
+  #board{gap:5px}
+  .tile{min-height:40px;aspect-ratio:1.25/1}
+  .team{flex:1 1 100%}
+}
+</style>
+</head>
+<body>
+
+<div id="flash"></div>
+<div id="boomtext">ASSASSIN</div>
+
+<div id="app">
+  <header class="top">
+    <div class="brand">oBirdy Replay <span class="dot">Theater</span>
+      <small>codenames &middot; cog 2026</small></div>
+    <span class="pill" id="matchup">&mdash;</span>
+    <span class="pill" id="meta">&mdash;</span>
+    <span class="spacer"></span>
+    <button class="toggle" id="spybtn" aria-pressed="false" title="Show the key grid (s)">Spymaster view</button>
+  </header>
+
+  <div class="layout">
+    <aside>
+      <div class="side-head">Games <span class="count" id="gcount"></span></div>
+      <div id="gamelist"></div>
+      <div class="dropzone" id="drop">
+        <b>Drop a replay JSON here</b>
+        <span class="long">exported by <span class="mono">harness.export_replay</span><br></span>
+        or <label>browse<input type="file" id="file" accept=".json,application/json" multiple></label>
+      </div>
+    </aside>
+
+    <main>
+      <div class="cluebar" id="cluebar">
+        <div>
+          <div class="who" id="clue-who">no clue yet</div>
+          <div class="word" id="clue-word">&mdash;</div>
+        </div>
+        <div class="num" id="clue-num" hidden></div>
+        <div class="think" id="clue-think"></div>
+      </div>
+
+      <div class="boardwrap"><div id="board"></div></div>
+
+      <div class="controls">
+        <button class="btn" id="b-first" title="Start (Home)">&#124;&#9664;</button>
+        <button class="btn" id="b-prev" title="Step back (&larr;)">&#9664;</button>
+        <button class="btn play" id="b-play" title="Play / pause (space)">&#9654;</button>
+        <button class="btn" id="b-next" title="Step forward (&rarr;)">&#9654;&#9654;</button>
+        <button class="btn" id="b-last" title="End (End)">&#9654;&#124;</button>
+        <input type="range" id="scrub" min="0" max="0" value="0">
+        <span class="step" id="stepno">0 / 0</span>
+        <select id="speed" title="Playback speed (&#91; and &#93;)">
+          <option value="2">0.5&times;</option>
+          <option value="1" selected>1&times;</option>
+          <option value="0.5">2&times;</option>
+          <option value="0.25">4&times;</option>
+        </select>
+      </div>
+
+      <div class="score">
+        <div class="team R" id="team-R">
+          <div>
+            <div class="nm">Red</div>
+            <div class="agents" id="ag-R">&mdash;</div>
+            <div class="pips" id="pips-R"></div>
+          </div>
+          <div class="left"><b id="left-R">9</b><span>left</span></div>
+        </div>
+        <div class="team B" id="team-B">
+          <div>
+            <div class="nm">Blue</div>
+            <div class="agents" id="ag-B">&mdash;</div>
+            <div class="pips" id="pips-B"></div>
+          </div>
+          <div class="left"><b id="left-B">8</b><span>left</span></div>
+        </div>
+      </div>
+
+      <div class="result" id="result"></div>
+
+      <div class="logwrap">
+        <h3>Commentary <span class="note" id="gamenote"></span></h3>
+        <div id="log"></div>
+      </div>
+
+      <div class="hint">
+        <kbd>space</kbd> play/pause &nbsp; <kbd>&larr;</kbd><kbd>&rarr;</kbd> step &nbsp;
+        <kbd>&#8679;</kbd>+<kbd>&rarr;</kbd> next turn &nbsp; <kbd>s</kbd> spymaster &nbsp;
+        <kbd>r</kbd> restart &nbsp; <kbd>j</kbd><kbd>k</kbd> game &nbsp; <kbd>&#91;</kbd><kbd>&#93;</kbd> speed
+      </div>
+    </main>
+  </div>
+</div>
+
+<div id="selftest" hidden></div>
+
+<script id="cn-embedded">
+/*CN_EMBED_START*/
+window.CN_EMBEDDED = {"format":"codenames-replay","version":1,"games":[{"id":"reeval_c_fixed#10","source":"reeval_c_fixed.json","index":10,"seed":10,"pool":"default","single_team":false,"words":["ROBOT","APPLE","YARD","SEAL","ROSE","PLATYPUS","WHALE","CENTER","PITCH","BARK","CARD","MOUTH","MINT","PRINCESS","SCIENTIST","BERRY","SPOT","DEGREE","GAS","MODEL","PAPER","BOX","AUSTRALIA","POLICE","STATE"],"key":"CCRBRRRCRCCBBRBCRBBBCRBRA","agents":{"red_cm":"oBirdy","red_g":"oBirdy","blue_cm":"Rattata","blue_g":"Rattata"},"agent_paths":{"red_cm":"players.codemaster_obirdy.AICodemaster","red_g":"players.guesser_obirdy.AIGuesser","blue_cm":"players.codemaster_heuristic.AICodemaster","blue_g":"players.guesser_heuristic.AIGuesser"},"models":{"red_cm":"claude-sonnet-5","red_g":"claude-sonnet-5"},"winner":"B","turns":5,"red_found":4,"blue_found":4,"civilians_hit":0,"assassin_hit":true,"assassin_hitter":"Red","illegal_clue_count":0,"duration_s":33.9,"moves":[{"t":"clue","team":"R","clue":"THROW","n":1,"sec":8.56},{"t":"guess","team":"R","word":"PITCH","i":8,"color":"R","keep":false},{"t":"clue","team":"B","clue":"MONEY","n":3,"sec":0.01},{"t":"guess","team":"B","word":"MINT","i":12,"color":"B","keep":true},{"t":"guess","team":"B","word":"MODEL","i":19,"color":"B","keep":true},{"t":"guess","team":"B","word":"MOUTH","i":11,"color":"B","keep":false},{"t":"clue","team":"R","clue":"MAMMAL","n":2,"sec":8.27},{"t":"guess","team":"R","word":"PLATYPUS","i":5,"color":"R","keep":true},{"t":"guess","team":"R","word":"WHALE","i":6,"color":"R","keep":false},{"t":"clue","team":"B","clue":"SCHOOLROOM","n":1,"sec":0.01},{"t":"guess","team":"B","word":"DEGREE","i":17,"color":"B","keep":false},{"t":"clue","team":"R","clue":"PAGEANT","n":2,"sec":8.44},{"t":"guess","team":"R","word":"PRINCESS","i":13,"color":"R","keep":true},{"t":"guess","team":"R","word":"STATE","i":24,"color":"A","keep":false}],"label":"The PAGEANT death","note":"PAGEANT 2 pulls PRINCESS, then STATE -- the assassin. The board that made us build the clue-safety nets."},{"id":"val_c_pidgeot#10","source":"val_c_pidgeot.json","index":10,"seed":10,"pool":"default","single_team":false,"words":["ROBOT","APPLE","YARD","SEAL","ROSE","PLATYPUS","WHALE","CENTER","PITCH","BARK","CARD","MOUTH","MINT","PRINCESS","SCIENTIST","BERRY","SPOT","DEGREE","GAS","MODEL","PAPER","BOX","AUSTRALIA","POLICE","STATE"],"key":"CCRBRRRCRCCBBRBCRBBBCRBRA","agents":{"red_cm":"oBirdy","red_g":"oBirdy","blue_cm":"Rattata","blue_g":"Rattata"},"agent_paths":{"red_cm":"players.codemaster_obirdy.AICodemaster","red_g":"players.guesser_obirdy.AIGuesser","blue_cm":"players.codemaster_heuristic.AICodemaster","blue_g":"players.guesser_heuristic.AIGuesser"},"models":{"red_cm":"claude-sonnet-5","red_g":"claude-sonnet-5"},"winner":"R","turns":14,"red_found":9,"blue_found":7,"civilians_hit":2,"assassin_hit":false,"assassin_hitter":null,"illegal_clue_count":0,"duration_s":90.1,"moves":[{"t":"clue","team":"R","clue":"COP","n":2,"sec":10.93},{"t":"guess","team":"R","word":"POLICE","i":23,"color":"R","keep":true},{"t":"guess","team":"R","word":"YARD","i":2,"color":"R","keep":false},{"t":"clue","team":"B","clue":"MONEY","n":3,"sec":0.01},{"t":"guess","team":"B","word":"MINT","i":12,"color":"B","keep":true},{"t":"guess","team":"B","word":"MODEL","i":19,"color":"B","keep":true},{"t":"guess","team":"B","word":"MOUTH","i":11,"color":"B","keep":false},{"t":"clue","team":"R","clue":"ANIMAL","n":2,"sec":10.28},{"t":"guess","team":"R","word":"WHALE","i":6,"color":"R","keep":true},{"t":"guess","team":"R","word":"PLATYPUS","i":5,"color":"R","keep":false},{"t":"clue","team":"B","clue":"JOB","n":1,"sec":0.02},{"t":"guess","team":"B","word":"SCIENTIST","i":14,"color":"B","keep":false},{"t":"clue","team":"R","clue":"FLOWER","n":1,"sec":10.23},{"t":"guess","team":"R","word":"ROSE","i":4,"color":"R","keep":false},{"t":"clue","team":"B","clue":"LIQUID","n":1,"sec":0.02},{"t":"guess","team":"B","word":"AUSTRALIA","i":22,"color":"B","keep":false},{"t":"clue","team":"R","clue":"THROW","n":1,"sec":10.03},{"t":"guess","team":"R","word":"PITCH","i":8,"color":"R","keep":false},{"t":"clue","team":"B","clue":"OCEAN","n":1,"sec":0.01},{"t":"guess","team":"B","word":"SEAL","i":3,"color":"B","keep":false},{"t":"clue","team":"R","clue":"SPECK","n":1,"sec":10.12},{"t":"guess","team":"R","word":"SPOT","i":16,"color":"R","keep":false},{"t":"clue","team":"B","clue":"LIQUID","n":1,"sec":0.01},{"t":"guess","team":"B","word":"DEGREE","i":17,"color":"B","keep":false},{"t":"clue","team":"R","clue":"GIFT","n":1,"sec":8.98},{"t":"guess","team":"R","word":"CARD","i":10,"color":"C","keep":false},{"t":"clue","team":"B","clue":"LIQUID","n":1,"sec":0.01},{"t":"guess","team":"B","word":"APPLE","i":1,"color":"C","keep":false},{"t":"clue","team":"R","clue":"PACKAGE","n":1,"sec":10.55},{"t":"guess","team":"R","word":"BOX","i":21,"color":"R","keep":false},{"t":"clue","team":"B","clue":"LIQUID","n":1,"sec":0.01},{"t":"guess","team":"B","word":"PRINCESS","i":13,"color":"R","keep":false}],"label":"The PAGEANT dodge","note":"Same seed, same board, after the fix. The danger sensor flagged PRESENT, the turn went out as GIFT 1, and blue eventually handed us the win."},{"id":"eval_c_default#14","source":"eval_c_default.json","index":14,"seed":14,"pool":"default","single_team":false,"words":["TELESCOPE","ROBOT","STICK","MOUNT","FAIR","FOREST","TIME","WORM","FALL","HOOD","SPIDER","WAKE","GLASS","CARD","TAP","COTTON","TORCH","CRASH","AMERICA","LINE","MAMMOTH","AIR","BAND","CENTAUR","FISH"],"key":"BCRRCBCBBBCRCCRBRBRCRARRB","agents":{"red_cm":"oBirdy","red_g":"oBirdy","blue_cm":"Rattata","blue_g":"Rattata"},"agent_paths":{"red_cm":"players.codemaster_obirdy.AICodemaster","red_g":"players.guesser_obirdy.AIGuesser","blue_cm":"players.codemaster_heuristic.AICodemaster","blue_g":"players.guesser_heuristic.AIGuesser"},"models":{"red_cm":"claude-sonnet-5","red_g":"claude-sonnet-5"},"winner":"B","turns":9,"red_found":7,"blue_found":7,"civilians_hit":2,"assassin_hit":true,"assassin_hitter":"Red","illegal_clue_count":0,"duration_s":54.4,"moves":[{"t":"clue","team":"R","clue":"MYTHICAL","n":2,"sec":9.2},{"t":"guess","team":"R","word":"CENTAUR","i":23,"color":"R","keep":true},{"t":"guess","team":"R","word":"MAMMOTH","i":20,"color":"R","keep":false},{"t":"clue","team":"B","clue":"CLOTHES","n":3,"sec":0.01},{"t":"guess","team":"B","word":"COTTON","i":15,"color":"B","keep":true},{"t":"guess","team":"B","word":"HOOD","i":9,"color":"B","keep":true},{"t":"guess","team":"B","word":"TELESCOPE","i":0,"color":"B","keep":false},{"t":"clue","team":"R","clue":"DRUM","n":2,"sec":8.12},{"t":"guess","team":"R","word":"BAND","i":22,"color":"R","keep":true},{"t":"guess","team":"R","word":"STICK","i":2,"color":"R","keep":false},{"t":"clue","team":"B","clue":"FOSSIL","n":2,"sec":0.01},{"t":"guess","team":"B","word":"FOREST","i":5,"color":"B","keep":true},{"t":"guess","team":"B","word":"FISH","i":24,"color":"B","keep":false},{"t":"clue","team":"R","clue":"NATION","n":1,"sec":7.49},{"t":"guess","team":"R","word":"AMERICA","i":18,"color":"R","keep":false},{"t":"clue","team":"B","clue":"CREATURE","n":2,"sec":0.01},{"t":"guess","team":"B","word":"WORM","i":7,"color":"B","keep":true},{"t":"guess","team":"B","word":"CRASH","i":17,"color":"B","keep":false},{"t":"clue","team":"R","clue":"KNOCK","n":1,"sec":7.11},{"t":"guess","team":"R","word":"TAP","i":14,"color":"R","keep":true},{"t":"guess","team":"R","word":"GLASS","i":12,"color":"C","keep":false},{"t":"clue","team":"B","clue":"PUZZLE","n":1,"sec":0.01},{"t":"guess","team":"B","word":"LINE","i":19,"color":"C","keep":false},{"t":"clue","team":"R","clue":"SADDLE","n":1,"sec":7.04},{"t":"guess","team":"R","word":"MOUNT","i":3,"color":"R","keep":true},{"t":"guess","team":"R","word":"AIR","i":21,"color":"A","keep":false}],"label":"The SADDLE disaster","note":"SADDLE 1 finds MOUNT, and then a bonus guess nobody needed walks into AIR."},{"id":"eval_c_default#19","source":"eval_c_default.json","index":19,"seed":19,"pool":"default","single_team":false,"words":["LAB","FIGHTER","REVOLUTION","IRON","COTTON","SPRING","WEB","SHADOW","CAP","TEMPLE","STRIKE","GRACE","PUPIL","BUCK","RABBIT","LAP","CIRCLE","PILOT","SLUG","VET","MICROSCOPE","POLE","IVORY","RACKET","TRAIN"],"key":"RBRBBRCBCCBBRCCBBARRRRCCR","agents":{"red_cm":"oBirdy","red_g":"oBirdy","blue_cm":"Rattata","blue_g":"Rattata"},"agent_paths":{"red_cm":"players.codemaster_obirdy.AICodemaster","red_g":"players.guesser_obirdy.AIGuesser","blue_cm":"players.codemaster_heuristic.AICodemaster","blue_g":"players.guesser_heuristic.AIGuesser"},"models":{"red_cm":"claude-sonnet-5","red_g":"claude-sonnet-5"},"winner":"B","turns":13,"red_found":8,"blue_found":6,"civilians_hit":1,"assassin_hit":true,"assassin_hitter":"Red","illegal_clue_count":0,"duration_s":79.3,"moves":[{"t":"clue","team":"R","clue":"STUDENT","n":1,"sec":10.39},{"t":"guess","team":"R","word":"PUPIL","i":12,"color":"R","keep":false},{"t":"clue","team":"B","clue":"WEAPON","n":2,"sec":0.01},{"t":"guess","team":"B","word":"STRIKE","i":10,"color":"B","keep":true},{"t":"guess","team":"B","word":"FIGHTER","i":1,"color":"B","keep":false},{"t":"clue","team":"R","clue":"SCIENCE","n":2,"sec":7.61},{"t":"guess","team":"R","word":"MICROSCOPE","i":20,"color":"R","keep":true},{"t":"guess","team":"R","word":"LAB","i":0,"color":"R","keep":false},{"t":"clue","team":"B","clue":"DARK","n":1,"sec":0.01},{"t":"guess","team":"B","word":"SHADOW","i":7,"color":"B","keep":false},{"t":"clue","team":"R","clue":"UPRISING","n":1,"sec":7.3},{"t":"guess","team":"R","word":"REVOLUTION","i":2,"color":"R","keep":false},{"t":"clue","team":"B","clue":"BODY","n":1,"sec":0.01},{"t":"guess","team":"B","word":"LAP","i":15,"color":"B","keep":false},{"t":"clue","team":"R","clue":"SEASON","n":1,"sec":8.9},{"t":"guess","team":"R","word":"SPRING","i":5,"color":"R","keep":false},{"t":"clue","team":"B","clue":"CARGO","n":1,"sec":0.01},{"t":"guess","team":"B","word":"CAP","i":8,"color":"C","keep":false},{"t":"clue","team":"R","clue":"FLAG","n":1,"sec":7.29},{"t":"guess","team":"R","word":"POLE","i":21,"color":"R","keep":false},{"t":"clue","team":"B","clue":"CLOTHES","n":1,"sec":0.01},{"t":"guess","team":"B","word":"COTTON","i":4,"color":"B","keep":false},{"t":"clue","team":"R","clue":"SLIMY","n":1,"sec":7.67},{"t":"guess","team":"R","word":"SLUG","i":18,"color":"R","keep":false},{"t":"clue","team":"B","clue":"SHAPE","n":1,"sec":0.01},{"t":"guess","team":"B","word":"CIRCLE","i":16,"color":"B","keep":false},{"t":"clue","team":"R","clue":"DRILL","n":1,"sec":6.97},{"t":"guess","team":"R","word":"TRAIN","i":24,"color":"R","keep":true},{"t":"guess","team":"R","word":"PILOT","i":17,"color":"A","keep":false}],"label":"DRILL into the pilot","note":"Another bonus guess off a stale board: TRAIN was right, PILOT was the assassin."},{"id":"val_x_pidgeot#7","source":"val_x_pidgeot.json","index":7,"seed":7,"pool":"default","single_team":true,"words":["LASER","HORSE","CENTER","PAPER","BACK","RABBIT","SCIENTIST","ATLANTIS","FLUTE","SINK","TEMPLE","POINT","PUPIL","ALPS","DECK","PART","DINOSAUR","CARROT","CHARGE","PUMPKIN","PIRATE","DISEASE","CHINA","INDIA","FILE"],"key":"RRBBRBBBRRRCRCACCRCBCBBRC","agents":{"red_cm":"oBirdy","red_g":"Abra","blue_cm":"Rattata","blue_g":"Rattata"},"agent_paths":{"red_cm":"players.codemaster_obirdy.AICodemaster","red_g":"players.guesser_glove.AIGuesser","blue_cm":"players.codemaster_heuristic.AICodemaster","blue_g":"players.guesser_heuristic.AIGuesser"},"models":{"red_cm":"claude-sonnet-5"},"winner":"B","turns":2,"red_found":3,"blue_found":0,"civilians_hit":0,"assassin_hit":true,"assassin_hitter":"Red","illegal_clue_count":0,"duration_s":23.1,"moves":[{"t":"clue","team":"R","clue":"INSTRUMENT","n":1,"sec":11.6},{"t":"guess","team":"R","word":"FLUTE","i":8,"color":"R","keep":true},{"t":"guess","team":"R","word":"LASER","i":0,"color":"R","keep":false},{"t":"clue","team":"R","clue":"FOREHEAD","n":1,"sec":11.54},{"t":"guess","team":"R","word":"BACK","i":4,"color":"R","keep":true},{"t":"guess","team":"R","word":"DECK","i":14,"color":"A","keep":false}],"label":"Two clues and out","note":"oBirdy calling for a stranger's guesser. Six moves, then Abra takes a bonus guess and finds DECK."},{"id":"val_a_pidgeot#0","source":"val_a_pidgeot.json","index":0,"seed":0,"pool":"default","single_team":true,"words":["SINK","POOL","KNIFE","ALPS","CONTRACT","CAR","PLATE","TRUNK","WORM","RULER","BELT","CHINA","PARACHUTE","FIGHTER","SPELL","PRESS","LION","JAM","MAPLE","BEACH","CHICK","MOUTH","EMBASSY","LEMON","SCHOOL"],"key":"CCABBBRRBRBRBBRRRCCRCBCCR","agents":{"red_cm":"oBirdy","red_g":"oBirdy","blue_cm":"Rattata","blue_g":"Rattata"},"agent_paths":{"red_cm":"players.codemaster_obirdy.AICodemaster","red_g":"players.guesser_obirdy.AIGuesser","blue_cm":"players.codemaster_heuristic.AICodemaster","blue_g":"players.guesser_heuristic.AIGuesser"},"models":{"red_cm":"claude-sonnet-5","red_g":"claude-sonnet-5"},"winner":"R","turns":6,"red_found":9,"blue_found":0,"civilians_hit":0,"assassin_hit":false,"assassin_hitter":null,"illegal_clue_count":0,"duration_s":77.8,"moves":[{"t":"clue","team":"R","clue":"EDUCATION","n":2,"sec":11.48},{"t":"guess","team":"R","word":"SCHOOL","i":24,"color":"R","keep":true},{"t":"guess","team":"R","word":"RULER","i":9,"color":"R","keep":false},{"t":"clue","team":"R","clue":"PORCELAIN","n":2,"sec":10.66},{"t":"guess","team":"R","word":"CHINA","i":11,"color":"R","keep":true},{"t":"guess","team":"R","word":"PLATE","i":6,"color":"R","keep":false},{"t":"clue","team":"R","clue":"PUBLISH","n":1,"sec":9.97},{"t":"guess","team":"R","word":"PRESS","i":15,"color":"R","keep":false},{"t":"clue","team":"R","clue":"SHORE","n":1,"sec":9.56},{"t":"guess","team":"R","word":"BEACH","i":19,"color":"R","keep":false},{"t":"clue","team":"R","clue":"ELEPHANT","n":2,"sec":10.75},{"t":"guess","team":"R","word":"TRUNK","i":7,"color":"R","keep":true},{"t":"guess","team":"R","word":"LION","i":16,"color":"R","keep":false},{"t":"clue","team":"R","clue":"WIZARDRY","n":1,"sec":10.05},{"t":"guess","team":"R","word":"SPELL","i":14,"color":"R","keep":false}],"label":"Six clues, nine words","note":"The clean solo run: no civilians, no blues, no wasted turns."},{"id":"eval_b_pidgeotto#2","source":"eval_b_pidgeotto.json","index":2,"seed":2,"pool":"slang","single_team":true,"words":["KIRBY","BATCAVE","POLTERGEIST","INSTAGRAM","REBOOT","DEEPFAKE","DOGECOIN","AIRBNB","KAIJU","SELFIE","BIGFOOT","CYBERPUNK","HEADCANON","MARIO","MULTIVERSE","ARCADE","REDDIT","SMOOTHIE","SPEEDRUN","MAINFRAME","PIXAR","FESTIVAL","KOMBUCHA","HYPERLOOP","ZELDA"],"key":"RBRCCCBBBBCCBRRCBBCRARRRR","agents":{"red_cm":"oBirdy","red_g":"oBirdy","blue_cm":"oBirdy","blue_g":"oBirdy"},"agent_paths":{"red_cm":"players.codemaster_obirdy.AICodemaster","red_g":"players.guesser_obirdy.AIGuesser","blue_cm":"players.codemaster_obirdy.AICodemaster","blue_g":"players.guesser_obirdy.AIGuesser"},"models":{"red_cm":"claude-sonnet-5","red_g":"claude-sonnet-5","blue_cm":"claude-sonnet-5","blue_g":"claude-sonnet-5"},"winner":"R","turns":6,"red_found":9,"blue_found":0,"civilians_hit":0,"assassin_hit":false,"assassin_hitter":null,"illegal_clue_count":0,"duration_s":63.0,"moves":[{"t":"clue","team":"R","clue":"NINTENDO","n":3,"sec":10.42},{"t":"guess","team":"R","word":"MARIO","i":13,"color":"R","keep":true},{"t":"guess","team":"R","word":"ZELDA","i":24,"color":"R","keep":true},{"t":"guess","team":"R","word":"KIRBY","i":0,"color":"R","keep":false},{"t":"clue","team":"R","clue":"COMPUTER","n":1,"sec":7.57},{"t":"guess","team":"R","word":"MAINFRAME","i":19,"color":"R","keep":false},{"t":"clue","team":"R","clue":"GHOST","n":1,"sec":7.64},{"t":"guess","team":"R","word":"POLTERGEIST","i":2,"color":"R","keep":false},{"t":"clue","team":"R","clue":"INFINITE","n":2,"sec":9.32},{"t":"guess","team":"R","word":"MULTIVERSE","i":14,"color":"R","keep":true},{"t":"guess","team":"R","word":"HYPERLOOP","i":23,"color":"R","keep":false},{"t":"clue","team":"R","clue":"CARNIVAL","n":1,"sec":8.41},{"t":"guess","team":"R","word":"FESTIVAL","i":21,"color":"R","keep":false},{"t":"clue","team":"R","clue":"HEALTH","n":1,"sec":7.84},{"t":"guess","team":"R","word":"KOMBUCHA","i":22,"color":"R","keep":false}],"label":"NINTENDO 3, slang board","note":"The generalisation pool -- HOGWARTS, KIRBY, MULTIVERSE -- swept in six turns."},{"id":"val_c_pidgeot#14","source":"val_c_pidgeot.json","index":14,"seed":14,"pool":"default","single_team":false,"words":["TELESCOPE","ROBOT","STICK","MOUNT","FAIR","FOREST","TIME","WORM","FALL","HOOD","SPIDER","WAKE","GLASS","CARD","TAP","COTTON","TORCH","CRASH","AMERICA","LINE","MAMMOTH","AIR","BAND","CENTAUR","FISH"],"key":"BCRRCBCBBBCRCCRBRBRCRARRB","agents":{"red_cm":"oBirdy","red_g":"oBirdy","blue_cm":"Rattata","blue_g":"Rattata"},"agent_paths":{"red_cm":"players.codemaster_obirdy.AICodemaster","red_g":"players.guesser_obirdy.AIGuesser","blue_cm":"players.codemaster_heuristic.AICodemaster","blue_g":"players.guesser_heuristic.AIGuesser"},"models":{"red_cm":"claude-sonnet-5","red_g":"claude-sonnet-5"},"winner":"B","turns":12,"red_found":8,"blue_found":8,"civilians_hit":2,"assassin_hit":false,"assassin_hitter":null,"illegal_clue_count":0,"duration_s":83.5,"moves":[{"t":"clue","team":"R","clue":"HORSE","n":2,"sec":13.84},{"t":"guess","team":"R","word":"MOUNT","i":3,"color":"R","keep":true},{"t":"guess","team":"R","word":"CENTAUR","i":23,"color":"R","keep":false},{"t":"clue","team":"B","clue":"CLOTHES","n":3,"sec":0.01},{"t":"guess","team":"B","word":"COTTON","i":15,"color":"B","keep":true},{"t":"guess","team":"B","word":"HOOD","i":9,"color":"B","keep":true},{"t":"guess","team":"B","word":"TELESCOPE","i":0,"color":"B","keep":false},{"t":"clue","team":"R","clue":"DRUM","n":2,"sec":10.64},{"t":"guess","team":"R","word":"STICK","i":2,"color":"R","keep":true},{"t":"guess","team":"R","word":"BAND","i":22,"color":"R","keep":false},{"t":"clue","team":"B","clue":"FOSSIL","n":2,"sec":0.02},{"t":"guess","team":"B","word":"FOREST","i":5,"color":"B","keep":true},{"t":"guess","team":"B","word":"FISH","i":24,"color":"B","keep":false},{"t":"clue","team":"R","clue":"OLYMPICS","n":2,"sec":8.47},{"t":"guess","team":"R","word":"TORCH","i":16,"color":"R","keep":false},{"t":"clue","team":"B","clue":"CREATURE","n":2,"sec":0.01},{"t":"guess","team":"B","word":"WORM","i":7,"color":"B","keep":true},{"t":"guess","team":"B","word":"CRASH","i":17,"color":"B","keep":false},{"t":"clue","team":"R","clue":"COLOSSAL","n":1,"sec":8.96},{"t":"guess","team":"R","word":"MAMMOTH","i":20,"color":"R","keep":false},{"t":"clue","team":"B","clue":"JOB","n":1,"sec":0.01},{"t":"guess","team":"B","word":"ROBOT","i":1,"color":"C","keep":false},{"t":"clue","team":"R","clue":"KEG","n":1,"sec":15.8},{"t":"guess","team":"R","word":"TAP","i":14,"color":"R","keep":false},{"t":"clue","team":"B","clue":"JOB","n":1,"sec":0.01},{"t":"guess","team":"B","word":"SPIDER","i":10,"color":"C","keep":false},{"t":"clue","team":"R","clue":"FUNERAL","n":1,"sec":10.37},{"t":"guess","team":"R","word":"WAKE","i":11,"color":"R","keep":false},{"t":"clue","team":"B","clue":"MOTION","n":1,"sec":0.0},{"t":"guess","team":"B","word":"FALL","i":8,"color":"B","keep":false}],"label":"One word short","note":"A duel that goes the distance and ends 8-8 with blue closing it out first."},{"id":"reeval_c_fixed#17","source":"reeval_c_fixed.json","index":17,"seed":17,"pool":"default","single_team":false,"words":["BOOT","SCALE","WALL","AMAZON","PUMPKIN","MOON","CALF","JUPITER","FENCE","PIANO","HORN","MINE","STRAW","CELL","JAM","DANCE","BLOCK","PLAY","VACUUM","BEACH","PANTS","SOUND","WORM","CLOAK","LION"],"key":"BRCRRRCRBCBBCRCACBRBBRCBR","agents":{"red_cm":"oBirdy","red_g":"oBirdy","blue_cm":"Rattata","blue_g":"Rattata"},"agent_paths":{"red_cm":"players.codemaster_obirdy.AICodemaster","red_g":"players.guesser_obirdy.AIGuesser","blue_cm":"players.codemaster_heuristic.AICodemaster","blue_g":"players.guesser_heuristic.AIGuesser"},"models":{"red_cm":"claude-sonnet-5","red_g":"claude-sonnet-5"},"winner":"B","turns":10,"red_found":8,"blue_found":8,"civilians_hit":1,"assassin_hit":false,"assassin_hitter":null,"illegal_clue_count":0,"duration_s":57.3,"moves":[{"t":"clue","team":"R","clue":"SPACE","n":3,"sec":12.74},{"t":"guess","team":"R","word":"JUPITER","i":7,"color":"R","keep":true},{"t":"guess","team":"R","word":"MOON","i":5,"color":"R","keep":true},{"t":"guess","team":"R","word":"VACUUM","i":18,"color":"R","keep":false},{"t":"clue","team":"B","clue":"CLOTHES","n":3,"sec":0.01},{"t":"guess","team":"B","word":"CLOAK","i":23,"color":"B","keep":true},{"t":"guess","team":"B","word":"BOOT","i":0,"color":"B","keep":true},{"t":"guess","team":"B","word":"PANTS","i":20,"color":"B","keep":false},{"t":"clue","team":"R","clue":"BIOLOGY","n":2,"sec":8.49},{"t":"guess","team":"R","word":"CELL","i":13,"color":"R","keep":true},{"t":"guess","team":"R","word":"CALF","i":6,"color":"C","keep":false},{"t":"clue","team":"B","clue":"WEATHER","n":1,"sec":0.01},{"t":"guess","team":"B","word":"BEACH","i":19,"color":"B","keep":false},{"t":"clue","team":"R","clue":"SAFARI","n":2,"sec":8.0},{"t":"guess","team":"R","word":"LION","i":24,"color":"R","keep":true},{"t":"guess","team":"R","word":"AMAZON","i":3,"color":"R","keep":false},{"t":"clue","team":"B","clue":"SPORT","n":1,"sec":0.01},{"t":"guess","team":"B","word":"PLAY","i":17,"color":"B","keep":false},{"t":"clue","team":"R","clue":"GOURD","n":1,"sec":6.6},{"t":"guess","team":"R","word":"PUMPKIN","i":4,"color":"R","keep":false},{"t":"clue","team":"B","clue":"MIRROR","n":1,"sec":0.01},{"t":"guess","team":"B","word":"MINE","i":11,"color":"B","keep":false},{"t":"clue","team":"R","clue":"VOLUME","n":2,"sec":7.48},{"t":"guess","team":"R","word":"SOUND","i":21,"color":"R","keep":true},{"t":"guess","team":"R","word":"HORN","i":10,"color":"B","keep":false},{"t":"clue","team":"B","clue":"FOSSIL","n":1,"sec":0.01},{"t":"guess","team":"B","word":"FENCE","i":8,"color":"B","keep":false}],"label":"The HORN handoff","note":"VOLUME 2 gets SOUND, then hands blue a word, and blue never gives it back."},{"id":"val_c_pidgeot#18","source":"val_c_pidgeot.json","index":18,"seed":18,"pool":"default","single_team":false,"words":["LEPRECHAUN","WIND","FAN","PLATYPUS","COVER","CAPITAL","SMUGGLER","BELT","VACUUM","MISSILE","KING","TOWER","DEATH","AMBULANCE","UNICORN","BILL","AMERICA","BUFFALO","PISTOL","SLUG","DATE","TRIP","HEART","FALL","BUTTON"],"key":"CCRCBRRCRBRCRBACBBCRRBRBB","agents":{"red_cm":"oBirdy","red_g":"oBirdy","blue_cm":"Rattata","blue_g":"Rattata"},"agent_paths":{"red_cm":"players.codemaster_obirdy.AICodemaster","red_g":"players.guesser_obirdy.AIGuesser","blue_cm":"players.codemaster_heuristic.AICodemaster","blue_g":"players.guesser_heuristic.AIGuesser"},"models":{"red_cm":"claude-sonnet-5","red_g":"claude-sonnet-5"},"winner":"R","turns":17,"red_found":9,"blue_found":7,"civilians_hit":4,"assassin_hit":false,"assassin_hitter":null,"illegal_clue_count":0,"duration_s":118.5,"moves":[{"t":"clue","team":"R","clue":"ORGAN","n":2,"sec":9.97},{"t":"guess","team":"R","word":"HEART","i":22,"color":"R","keep":true},{"t":"guess","team":"R","word":"BILL","i":15,"color":"C","keep":false},{"t":"clue","team":"B","clue":"MOTION","n":2,"sec":0.01},{"t":"guess","team":"B","word":"TRIP","i":21,"color":"B","keep":true},{"t":"guess","team":"B","word":"FALL","i":23,"color":"B","keep":false},{"t":"clue","team":"R","clue":"SCHEDULE","n":1,"sec":11.72},{"t":"guess","team":"R","word":"DATE","i":20,"color":"R","keep":false},{"t":"clue","team":"B","clue":"VEHICLE","n":1,"sec":0.01},{"t":"guess","team":"B","word":"AMBULANCE","i":13,"color":"B","keep":false},{"t":"clue","team":"R","clue":"EMPTY","n":2,"sec":10.61},{"t":"guess","team":"R","word":"VACUUM","i":8,"color":"R","keep":false},{"t":"clue","team":"B","clue":"MEAL","n":1,"sec":0.01},{"t":"guess","team":"B","word":"MISSILE","i":9,"color":"B","keep":false},{"t":"clue","team":"R","clue":"CHESS","n":1,"sec":10.89},{"t":"guess","team":"R","word":"KING","i":10,"color":"R","keep":false},{"t":"clue","team":"B","clue":"BODY","n":1,"sec":0.01},{"t":"guess","team":"B","word":"BUTTON","i":24,"color":"B","keep":false},{"t":"clue","team":"R","clue":"MONEY","n":1,"sec":10.15},{"t":"guess","team":"R","word":"CAPITAL","i":5,"color":"R","keep":false},{"t":"clue","team":"B","clue":"NATION","n":1,"sec":0.01},{"t":"guess","team":"B","word":"AMERICA","i":16,"color":"B","keep":false},{"t":"clue","team":"R","clue":"DYING","n":1,"sec":9.87},{"t":"guess","team":"R","word":"DEATH","i":12,"color":"R","keep":false},{"t":"clue","team":"B","clue":"BODY","n":1,"sec":0.01},{"t":"guess","team":"B","word":"BUFFALO","i":17,"color":"B","keep":false},{"t":"clue","team":"R","clue":"CRAWL","n":1,"sec":11.01},{"t":"guess","team":"R","word":"SLUG","i":19,"color":"R","keep":false},{"t":"clue","team":"B","clue":"VALLEY","n":1,"sec":0.01},{"t":"guess","team":"B","word":"PLATYPUS","i":3,"color":"C","keep":false},{"t":"clue","team":"R","clue":"SMUGGLING","n":1,"sec":11.61},{"t":"guess","team":"R","word":"SMUGGLER","i":6,"color":"R","keep":true},{"t":"guess","team":"R","word":"BELT","i":7,"color":"C","keep":false},{"t":"clue","team":"B","clue":"VALLEY","n":1,"sec":0.0},{"t":"guess","team":"B","word":"LEPRECHAUN","i":0,"color":"C","keep":false},{"t":"clue","team":"R","clue":"CLUB","n":1,"sec":8.3},{"t":"guess","team":"R","word":"FAN","i":2,"color":"R","keep":false}],"label":"The long grind","note":"Seventeen turns, four civilians, and red still gets home."},{"id":"gauntlet_mirror#2","source":"gauntlet_mirror.json","index":2,"seed":102,"pool":"default","single_team":false,"words":["LION","COMIC","TOKYO","MISSILE","CIRCLE","BRUSH","STAR","SWING","ANGEL","KNIFE","UNDERTAKER","BUTTON","CROWN","FLY","DICE","YARD","FAIR","GLASS","GERMANY","LINK","ANTARCTICA","WALL","FORK","FOREST","TAIL"],"key":"BBBRRBRBRCCCBCARCCCRBRBRR","agents":{"red_cm":"oBirdy","red_g":"oBirdy","blue_cm":"oBirdy","blue_g":"oBirdy"},"agent_paths":{"red_cm":"players.codemaster_obirdy.AICodemaster","red_g":"players.guesser_obirdy.AIGuesser","blue_cm":"players.codemaster_obirdy.AICodemaster","blue_g":"players.guesser_obirdy.AIGuesser"},"models":{"red_cm":"claude-sonnet-5","red_g":"claude-sonnet-5","blue_cm":"claude-sonnet-5","blue_g":"claude-sonnet-5"},"winner":"R","turns":11,"red_found":9,"blue_found":6,"civilians_hit":0,"assassin_hit":false,"assassin_hitter":null,"illegal_clue_count":0,"duration_s":167.3,"moves":[{"t":"clue","team":"R","clue":"CONNECTION","n":2,"sec":11.74},{"t":"guess","team":"R","word":"LINK","i":19,"color":"R","keep":false},{"t":"clue","team":"B","clue":"TEETH","n":2,"sec":11.85},{"t":"guess","team":"B","word":"BRUSH","i":5,"color":"B","keep":true},{"t":"guess","team":"B","word":"CROWN","i":12,"color":"B","keep":false},{"t":"clue","team":"R","clue":"HEAVENLY","n":2,"sec":12.06},{"t":"guess","team":"R","word":"ANGEL","i":8,"color":"R","keep":true},{"t":"guess","team":"R","word":"STAR","i":6,"color":"R","keep":false},{"t":"clue","team":"B","clue":"POLE","n":1,"sec":16.38},{"t":"guess","team":"B","word":"ANTARCTICA","i":20,"color":"B","keep":false},{"t":"clue","team":"R","clue":"PERIMETER","n":3,"sec":11.66},{"t":"guess","team":"R","word":"YARD","i":15,"color":"R","keep":true},{"t":"guess","team":"R","word":"WALL","i":21,"color":"R","keep":true},{"t":"guess","team":"R","word":"CIRCLE","i":4,"color":"R","keep":false},{"t":"clue","team":"B","clue":"BOOK","n":1,"sec":10.91},{"t":"guess","team":"B","word":"COMIC","i":1,"color":"B","keep":false},{"t":"clue","team":"R","clue":"COMET","n":1,"sec":12.34},{"t":"guess","team":"R","word":"TAIL","i":24,"color":"R","keep":false},{"t":"clue","team":"B","clue":"ROAD","n":1,"sec":11.48},{"t":"guess","team":"B","word":"TOKYO","i":2,"color":"B","keep":false},{"t":"clue","team":"R","clue":"ROCKET","n":1,"sec":10.53},{"t":"guess","team":"R","word":"MISSILE","i":3,"color":"R","keep":false},{"t":"clue","team":"B","clue":"UTENSIL","n":1,"sec":9.57},{"t":"guess","team":"B","word":"FORK","i":22,"color":"B","keep":false},{"t":"clue","team":"R","clue":"LUMBERJACK","n":1,"sec":11.46},{"t":"guess","team":"R","word":"FOREST","i":23,"color":"R","keep":false}],"label":"Mirror match","note":"oBirdy on both sides of the table. Whoever moves first should win, and on this board red does, 9-6."}]};
+/*CN_EMBED_END*/
+</script>
+
+<script>
+"use strict";
+/* =========================================================================
+   Pure logic.  Everything below `CN` is side-effect free and is what the
+   ?selftest=1 harness at the bottom of this file asserts against.
+   ========================================================================= */
+var CN = (function(){
+
+  var COLOR_LONG = {R:"Red", B:"Blue", C:"Civilian", A:"Assassin"};
+  var TARGET = {R:9, B:8};
+
+  function teamLabel(t){ return t === "R" ? "RED" : "BLUE"; }
+  function other(t){ return t === "R" ? "B" : "R"; }
+
+  /* 'players.codemaster_heuristic.AICodemaster' -> 'Rattata'.  Kept in the
+     viewer as well as the exporter so hand-written replay files still read
+     nicely. */
+  var AGENTS = {
+    codemaster_obirdy:"oBirdy", guesser_obirdy:"oBirdy",
+    codemaster_glove:"Abra", guesser_glove:"Abra",
+    codemaster_heuristic:"Rattata", guesser_heuristic:"Rattata",
+    codemaster_random:"Magikarp", guesser_random:"Magikarp",
+    codemaster_GPT:"GPT", guesser_GPT:"GPT"
+  };
+  function friendlyAgent(path){
+    if(!path) return "?";
+    var parts = String(path).split(".");
+    var mod = parts.length >= 2 ? parts[parts.length - 2] : parts[0];
+    if(AGENTS[mod]) return AGENTS[mod];
+    return mod.replace("codemaster_","").replace("guesser_","") || mod;
+  }
+
+  /* Two agents on a side collapse to one name when they are the same bot. */
+  function sideName(game, side){
+    var a = game.agents || {};
+    var cm = a[side + "_cm"] || "?", g = a[side + "_g"] || "?";
+    return cm === g ? cm : cm + " / " + g;
+  }
+  function matchupLabel(game){
+    if(game.single_team) return sideName(game, "red") + " solo";
+    return sideName(game, "red") + " vs " + sideName(game, "blue");
+  }
+
+  function emptyFrame(){
+    var colors = [], i;
+    for(i = 0; i < 25; i++) colors.push(null);
+    return {
+      step:0, kind:"start", colors:colors,
+      counts:{R:0, B:0, C:0, A:0},
+      clue:null, clueGuesses:0, turnNo:0,
+      lastIndex:-1, boom:false,
+      commentary:"Board set. Waiting on the first clue.",
+      over:false, winner:null, tone:""
+    };
+  }
+
+  function cloneFrame(f){
+    return {
+      step:f.step, kind:f.kind, colors:f.colors.slice(),
+      counts:{R:f.counts.R, B:f.counts.B, C:f.counts.C, A:f.counts.A},
+      clue:f.clue, clueGuesses:f.clueGuesses, turnNo:f.turnNo,
+      lastIndex:-1, boom:false, commentary:"", over:f.over,
+      winner:f.winner, tone:""
+    };
+  }
+
+  function countColors(colors){
+    var c = {R:0, B:0, C:0, A:0}, i;
+    for(i = 0; i < colors.length; i++) if(colors[i]) c[colors[i]]++;
+    return c;
+  }
+
+  /* Ordinal wording for a guess inside its clue: "guess 2 of 3", or the
+     free bonus guess the rules hand out on top of the number. */
+  function guessLabel(frame){
+    if(!frame.clue) return "free guess";
+    if(frame.clueGuesses > frame.clue.n) return "the bonus guess";
+    return "guess " + frame.clueGuesses + " of " + frame.clue.n;
+  }
+
+  /* The framework's win rules, verbatim: a team wins the moment all of its
+     words are revealed no matter who revealed them, and the assassin hands
+     the game to the other side. */
+  function winnerAfter(color, counts, guesserTeam){
+    if(color === "A") return other(guesserTeam);
+    if(color === "R" && counts.R >= TARGET.R) return "R";
+    if(color === "B" && counts.B >= TARGET.B) return "B";
+    return null;
+  }
+
+  function applyMove(prev, mv){
+    var f = cloneFrame(prev);
+    f.step = prev.step + 1;
+    if(mv.t === "clue"){
+      f.kind = "clue";
+      f.clue = {team:mv.team, clue:mv.clue, n:mv.n, sec:mv.sec};
+      f.clueGuesses = 0;
+      f.turnNo = prev.turnNo + 1;
+      f.commentary = teamLabel(mv.team) + " clues: " + mv.clue + " " + mv.n;
+      return f;
+    }
+    f.kind = "guess";
+    f.colors[mv.i] = mv.color;
+    f.counts = countColors(f.colors);
+    f.clueGuesses = prev.clueGuesses + 1;
+    f.lastIndex = mv.i;
+
+    var win = winnerAfter(mv.color, f.counts, mv.team);
+    var label = guessLabel(f);
+    var txt;
+    if(mv.color === "A"){
+      f.boom = true;
+      f.tone = "kill";
+      txt = mv.word + " — THE ASSASSIN. " +
+            (other(mv.team) === "R" ? "Red" : "Blue") + " wins.";
+    } else if(mv.color === mv.team){
+      f.tone = "good";
+      txt = mv.word + " — correct! (" + label + ")";
+      if(win) txt = mv.word + " — correct, and that is the game.";
+    } else if(mv.color === "C"){
+      f.tone = "bad";
+      txt = mv.word + " — civilian. Turn over.";
+    } else {
+      f.tone = "bad";
+      txt = mv.word + " — that one belongs to " +
+            (mv.color === "R" ? "RED" : "BLUE") + ". Turn over.";
+      if(win) txt += " And that finishes " + (win === "R" ? "RED" : "BLUE") + ".";
+    }
+    if(win){
+      f.over = true;
+      f.winner = win;
+      if(mv.color !== "A") txt += " " + (win === "R" ? "Red" : "Blue") + " wins.";
+    }
+    f.commentary = txt;
+    return f;
+  }
+
+  /* frames[k] is the board after k moves, so frames.length === moves+1. */
+  function buildTimeline(game){
+    var frames = [emptyFrame()], i;
+    var moves = game.moves || [];
+    for(i = 0; i < moves.length; i++) frames.push(applyMove(frames[i], moves[i]));
+    return frames;
+  }
+
+  function wordsLeft(frame, team){ return TARGET[team] - frame.counts[team]; }
+
+  function resultLine(game, frame){
+    if(!frame.over) return "";
+    var w = frame.winner === "R" ? "RED" : "BLUE";
+    var how;
+    if(frame.counts.A){
+      how = "the assassin, hit by " +
+            (game.assassin_hitter ? game.assassin_hitter.toUpperCase() : "the loser");
+    } else {
+      how = "all " + TARGET[frame.winner] + " words found";
+    }
+    return w + " wins — " + how + ", in " + frame.turnNo + " clues.";
+  }
+
+  /* Step index of the start of turn `dir` relative to the current step. */
+  function turnJump(game, step, dir){
+    var moves = (game && game.moves) || [], i;
+    if(dir > 0){
+      for(i = step; i < moves.length; i++) if(moves[i].t === "clue") return i + 1;
+      return moves.length;
+    }
+    for(i = step - 2; i >= 0; i--) if(moves[i].t === "clue") return i + 1;
+    return 0;
+  }
+
+  function indexOfWord(game, word){
+    var i, w = String(word).toUpperCase();
+    for(i = 0; i < game.words.length; i++) if(game.words[i] === w) return i;
+    return -1;
+  }
+
+  /* Accepts the export envelope, a bare array of replay games, or a single
+     replay game.  Returns [] for anything else. */
+  function normalisePayload(payload){
+    if(!payload) return [];
+    if(Array.isArray(payload)) return payload.filter(isReplayGame);
+    if(Array.isArray(payload.games)) return payload.games.filter(isReplayGame);
+    if(isReplayGame(payload)) return [payload];
+    return [];
+  }
+  function isReplayGame(g){
+    return !!g && Array.isArray(g.words) && g.words.length === 25 &&
+           typeof g.key === "string" && g.key.length === 25 && Array.isArray(g.moves);
+  }
+  /* A raw arena result, which we cannot replay: its key grid is not in the file. */
+  function looksLikeRawArena(payload){
+    var one = Array.isArray(payload) ? payload[0] : payload;
+    return !!one && typeof one === "object" && !!one.move_history && !one.key;
+  }
+
+  function gameTitle(game){
+    return game.label || (matchupLabel(game) + ", seed " + game.seed);
+  }
+
+  return {
+    COLOR_LONG:COLOR_LONG, TARGET:TARGET,
+    teamLabel:teamLabel, other:other, friendlyAgent:friendlyAgent,
+    sideName:sideName, matchupLabel:matchupLabel,
+    emptyFrame:emptyFrame, applyMove:applyMove, buildTimeline:buildTimeline,
+    countColors:countColors, guessLabel:guessLabel, winnerAfter:winnerAfter,
+    wordsLeft:wordsLeft, resultLine:resultLine, turnJump:turnJump,
+    indexOfWord:indexOfWord, normalisePayload:normalisePayload,
+    isReplayGame:isReplayGame, looksLikeRawArena:looksLikeRawArena,
+    gameTitle:gameTitle
+  };
+})();
+
+/* =========================================================================
+   Self-test mode: ?selftest=1
+   ========================================================================= */
+function runSelfTest(games){
+  var results = [];
+  function check(name, fn){
+    var ok = false, detail = "";
+    try{ var r = fn(); ok = (r === true || r === undefined); if(r && r !== true) detail = String(r); }
+    catch(e){ ok = false; detail = e && e.message ? e.message : String(e); }
+    results.push({name:name, ok:ok, detail:detail});
+  }
+  function eq(a, b, what){ if(a !== b) throw new Error(what + ": " + a + " !== " + b); return true; }
+
+  check("payload has games", function(){
+    if(!games.length) throw new Error("no embedded games");
+    return true;
+  });
+  check("friendlyAgent maps the ladder", function(){
+    eq(CN.friendlyAgent("players.codemaster_heuristic.AICodemaster"), "Rattata", "heuristic");
+    eq(CN.friendlyAgent("players.guesser_glove.AIGuesser"), "Abra", "glove");
+    eq(CN.friendlyAgent("players.codemaster_obirdy.AICodemaster"), "oBirdy", "obirdy");
+    eq(CN.friendlyAgent("players.guesser_random.AIGuesser"), "Magikarp", "random");
+    eq(CN.friendlyAgent(null), "?", "null");
+    return true;
+  });
+  check("winnerAfter follows the framework rules", function(){
+    eq(CN.winnerAfter("A", {R:1,B:1,C:0,A:1}, "R"), "B", "assassin by red");
+    eq(CN.winnerAfter("R", {R:9,B:0,C:0,A:0}, "B"), "R", "blue reveals red's last");
+    eq(CN.winnerAfter("B", {R:0,B:7,C:0,A:0}, "B"), null, "not done yet");
+    return true;
+  });
+
+  games.forEach(function(g){
+    var tag = g.id || CN.gameTitle(g);
+    check(tag + ": board is 25 unique words", function(){
+      eq(g.words.length, 25, "words");
+      var set = {}, i;
+      for(i = 0; i < 25; i++){
+        if(set[g.words[i]]) throw new Error("duplicate word " + g.words[i]);
+        set[g.words[i]] = 1;
+      }
+      return true;
+    });
+    check(tag + ": key is 9R/8B/7C/1A", function(){
+      eq(g.key.length, 25, "key length");
+      var c = {R:0,B:0,C:0,A:0}, i;
+      for(i = 0; i < 25; i++){
+        if(!(g.key[i] in c)) throw new Error("bad key char " + g.key[i]);
+        c[g.key[i]]++;
+      }
+      eq(c.R, 9, "red"); eq(c.B, 8, "blue"); eq(c.C, 7, "civilian"); eq(c.A, 1, "assassin");
+      return true;
+    });
+    check(tag + ": guesses agree with words and key", function(){
+      g.moves.forEach(function(m, k){
+        if(m.t !== "guess") return;
+        if(g.words[m.i] !== m.word)
+          throw new Error("move " + k + ": index " + m.i + " is " + g.words[m.i] + ", not " + m.word);
+        if(g.key[m.i] !== m.color)
+          throw new Error("move " + k + ": key says " + g.key[m.i] + ", move says " + m.color);
+        if(CN.indexOfWord(g, m.word) !== m.i)
+          throw new Error("move " + k + ": word lookup disagrees with index");
+      });
+      return true;
+    });
+    check(tag + ": timeline length and clue count", function(){
+      var frames = CN.buildTimeline(g);
+      eq(frames.length, g.moves.length + 1, "frames");
+      var clues = g.moves.filter(function(m){ return m.t === "clue"; }).length;
+      eq(frames[frames.length - 1].turnNo, clues, "turnNo");
+      if(g.turns != null) eq(clues, g.turns, "recorded turns");
+      return true;
+    });
+    check(tag + ": final counts match the recorded result", function(){
+      var last = CN.buildTimeline(g).pop();
+      if(g.red_found != null) eq(last.counts.R, g.red_found, "red found");
+      if(g.blue_found != null) eq(last.counts.B, g.blue_found, "blue found");
+      if(g.civilians_hit != null) eq(last.counts.C, g.civilians_hit, "civilians");
+      eq(last.counts.A > 0, !!g.assassin_hit, "assassin flag");
+      return true;
+    });
+    check(tag + ": replayed winner matches the recorded winner", function(){
+      var last = CN.buildTimeline(g).pop();
+      eq(last.over, true, "game reached an end state");
+      eq(last.winner, g.winner, "winner");
+      return true;
+    });
+    check(tag + ": every frame narrates itself", function(){
+      CN.buildTimeline(g).forEach(function(f, k){
+        if(typeof f.commentary !== "string" || !f.commentary.length)
+          throw new Error("frame " + k + " has no commentary");
+      });
+      return true;
+    });
+  });
+
+  var failed = results.filter(function(r){ return !r.ok; });
+  var host = document.getElementById("selftest");
+  document.getElementById("app").hidden = true;
+  host.hidden = false;
+  var html = "<h1>viewer self-test</h1>";
+  html += '<div class="summary ' + (failed.length ? "fail" : "pass") + '">' +
+          (failed.length ? "FAIL" : "PASS") + " — " +
+          (results.length - failed.length) + "/" + results.length +
+          " checks over " + games.length + " embedded game(s)</div>";
+  results.forEach(function(r){
+    html += '<div class="row ' + (r.ok ? "pass" : "fail") + '"><span class="st">' +
+            (r.ok ? "PASS" : "FAIL") + "</span><span>" + esc(r.name) +
+            (r.detail ? " — " + esc(r.detail) : "") + "</span></div>";
+  });
+  host.innerHTML = html;
+  var summary = (failed.length ? "FAIL" : "PASS") + ": " +
+                (results.length - failed.length) + "/" + results.length + " checks";
+  if(failed.length){
+    console.error("viewer selftest " + summary);
+    failed.forEach(function(r){ console.error("  FAIL " + r.name + " " + r.detail); });
+  } else {
+    console.log("viewer selftest " + summary);
+  }
+  window.CN_SELFTEST_RESULT = {pass:!failed.length, total:results.length,
+                               failed:failed.length, results:results};
+}
+
+/* =========================================================================
+   App
+   ========================================================================= */
+function esc(s){
+  return String(s).replace(/[&<>"]/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];
+  });
+}
+var $ = function(id){ return document.getElementById(id); };
+
+var App = {
+  games:[], game:null, frames:[], step:0,
+  playing:false, timer:null, speed:1, spy:false
+};
+
+function loadGames(list, opts){
+  opts = opts || {};
+  var added = 0;
+  list.forEach(function(g){
+    var id = g.id || (g.source || "replay") + "#" + (g.index != null ? g.index : App.games.length);
+    if(App.games.some(function(x){ return x.id === id; })) return;
+    g.id = id;
+    App.games.push(g);
+    added++;
+  });
+  renderGameList();
+  if(added && (opts.select || !App.game)){
+    selectGame(App.games.length - added);
+  }
+  return added;
+}
+
+function renderGameList(){
+  var host = $("gamelist");
+  $("gcount").textContent = App.games.length ? App.games.length + " loaded" : "";
+  if(!App.games.length){
+    host.innerHTML = '<div class="dropzone">No games embedded. Export some with ' +
+                     '<span class="mono">python -m harness.export_replay</span> and drop the file in.</div>';
+    return;
+  }
+  host.innerHTML = App.games.map(function(g, i){
+    var badgeCls = g.assassin_hit ? "death" : "win-" + g.winner;
+    var badge = g.assassin_hit ? "ASSASSIN" : (g.winner === "R" ? "RED" : "BLUE");
+    var meta = g.pool + " · seed " + g.seed + " · " + g.turns + " clues" +
+               (g.single_team ? " · solo" : "");
+    return '<button class="gcard" data-i="' + i + '" aria-current="' +
+           (App.game === g ? "true" : "false") + '">' +
+           '<div class="lab">' + esc(g.label || CN.matchupLabel(g)) +
+           '<span class="badge ' + badgeCls + '">' + badge + '</span></div>' +
+           '<div class="sub">' + esc(CN.matchupLabel(g)) + '</div>' +
+           '<div class="meta">' + esc(meta) + '</div></button>';
+  }).join("");
+  Array.prototype.forEach.call(host.querySelectorAll(".gcard"), function(el){
+    el.addEventListener("click", function(){ selectGame(+el.dataset.i); });
+  });
+}
+
+function selectGame(i){
+  var g = App.games[i];
+  if(!g) return;
+  pause();
+  App.game = g;
+  App.frames = CN.buildTimeline(g);
+  App.step = 0;
+  renderGameList();
+  buildBoard();
+  buildLog();
+  $("matchup").innerHTML = "<b>" + esc(CN.matchupLabel(g)) + "</b>";
+  $("meta").innerHTML = esc(g.pool + " pool · seed " + g.seed) +
+                        (g.duration_s ? " · <b>" + g.duration_s + "s</b>" : "");
+  $("gamenote").textContent = g.note || "";
+  $("ag-R").textContent = CN.sideName(g, "red");
+  $("ag-B").textContent = g.single_team ? "(no blue team)" : CN.sideName(g, "blue");
+  $("scrub").max = App.frames.length - 1;
+  render();
+}
+
+function buildBoard(){
+  var g = App.game, html = "", i;
+  for(i = 0; i < 25; i++){
+    html += '<div class="tile hidden k-' + g.key[i] + '" data-i="' + i + '">' +
+            '<span class="key-dot key-' + g.key[i] + '"></span>' +
+            '<span class="w">' + esc(g.words[i]) + "</span></div>";
+  }
+  $("board").innerHTML = html;
+}
+
+function buildLog(){
+  var html = "", i, f;
+  for(i = 1; i < App.frames.length; i++){
+    f = App.frames[i];
+    var mv = App.game.moves[i - 1];
+    html += '<div class="line ' + mv.team + " " + f.kind + " " + f.tone +
+            '" data-step="' + i + '"><span class="n">' + i + '</span>' +
+            '<span class="txt">' + esc(f.commentary) + "</span></div>";
+  }
+  $("log").innerHTML = html;
+  Array.prototype.forEach.call($("log").querySelectorAll(".line"), function(el){
+    el.addEventListener("click", function(){ pause(); goTo(+el.dataset.step, true); });
+  });
+}
+
+function render(animate){
+  var g = App.game, f = App.frames[App.step], i;
+  if(!g) return;
+  var tiles = $("board").children;
+  for(i = 0; i < 25; i++){
+    var t = tiles[i], col = f.colors[i];
+    t.className = "tile k-" + g.key[i] + (col ? " done" : " hidden") +
+                  (animate && f.lastIndex === i ? " just" : "");
+  }
+
+  // clue bar
+  var bar = $("cluebar");
+  bar.className = "cluebar" + (f.clue ? " team-" + f.clue.team : "");
+  if(f.clue){
+    $("clue-who").textContent = CN.teamLabel(f.clue.team) + " clues — " +
+      CN.sideName(g, f.clue.team === "R" ? "red" : "blue") + ", turn " + f.turnNo;
+    $("clue-word").textContent = f.clue.clue;
+    $("clue-num").hidden = false;
+    $("clue-num").textContent = f.clue.n;
+    $("clue-think").textContent = f.clue.sec != null ? "thought for " + f.clue.sec + "s" : "";
+  } else {
+    $("clue-who").textContent = "no clue yet";
+    $("clue-word").textContent = "—";
+    $("clue-num").hidden = true;
+    $("clue-think").textContent = "";
+  }
+
+  // scoreboard
+  ["R", "B"].forEach(function(team){
+    $("left-" + team).textContent = CN.wordsLeft(f, team);
+    var pips = "", k;
+    for(k = 0; k < CN.TARGET[team]; k++)
+      pips += '<span class="pip' + (k < f.counts[team] ? " on" : "") + '"></span>';
+    $("pips-" + team).innerHTML = pips;
+    var active = f.clue && f.clue.team === team && !f.over;
+    $("team-" + team).className = "team " + team + (active ? " active" : "");
+  });
+
+  // result banner
+  var res = $("result");
+  if(f.over){
+    res.className = "result show " + f.winner;
+    res.innerHTML = "<b>" + esc(CN.resultLine(g, f)) + "</b>";
+  } else {
+    res.className = "result";
+    res.innerHTML = "";
+  }
+
+  // controls + log cursor
+  $("scrub").value = App.step;
+  $("stepno").textContent = App.step + " / " + (App.frames.length - 1);
+  $("b-prev").disabled = $("b-first").disabled = App.step === 0;
+  $("b-next").disabled = $("b-last").disabled = App.step >= App.frames.length - 1;
+  // Scroll the log box itself; scrollIntoView would drag the whole page with it.
+  var box = $("log");
+  Array.prototype.forEach.call(box.children, function(el){
+    var on = +el.dataset.step === App.step;
+    el.classList.toggle("now", on);
+    if(on) box.scrollTop = el.offsetTop - (box.clientHeight - el.offsetHeight) / 2;
+  });
+
+  if(animate && f.boom) boom();
+}
+
+var boomTimer = null;
+function boom(){
+  document.body.classList.remove("boom");
+  void document.body.offsetWidth;      // restart the animation
+  document.body.classList.add("boom");
+  clearTimeout(boomTimer);
+  boomTimer = setTimeout(function(){ document.body.classList.remove("boom"); }, 1250);
+}
+
+function goTo(step, animate){
+  if(!App.frames.length) return;
+  App.step = Math.max(0, Math.min(App.frames.length - 1, step));
+  render(animate);
+}
+function stepBy(d){ pause(); goTo(App.step + d, d > 0); }
+
+/* Clues linger a beat longer than guesses -- that is the moment you read. */
+function delayFor(step){
+  var f = App.frames[step];
+  if(!f) return 900;
+  var base = f.kind === "clue" ? 1500 : (f.boom ? 2200 : 850);
+  return base * App.speed;
+}
+function play(){
+  if(App.playing || !App.frames.length) return;
+  if(App.step >= App.frames.length - 1) goTo(0, false);
+  App.playing = true;
+  $("b-play").innerHTML = "&#10073;&#10073;";
+  tick();
+}
+function tick(){
+  if(!App.playing) return;
+  if(App.step >= App.frames.length - 1){ pause(); return; }
+  goTo(App.step + 1, true);
+  App.timer = setTimeout(tick, delayFor(App.step));
+}
+function pause(){
+  App.playing = false;
+  clearTimeout(App.timer);
+  $("b-play").innerHTML = "&#9654;";
+}
+function togglePlay(){ App.playing ? pause() : play(); }
+
+function setSpy(on){
+  App.spy = on;
+  document.body.classList.toggle("spy", on);
+  $("spybtn").setAttribute("aria-pressed", on ? "true" : "false");
+}
+
+function cycleSpeed(d){
+  var sel = $("speed");
+  sel.selectedIndex = Math.max(0, Math.min(sel.options.length - 1, sel.selectedIndex + d));
+  App.speed = parseFloat(sel.value);
+}
+
+function shiftGame(d){
+  var i = App.games.indexOf(App.game);
+  selectGame((i + d + App.games.length) % App.games.length);
+}
+
+/* ---------- file loading ---------- */
+function ingestText(text, name){
+  var payload;
+  try{ payload = JSON.parse(text); }
+  catch(e){ return flashMsg(name + ": not valid JSON"); }
+  var list = CN.normalisePayload(payload);
+  if(!list.length){
+    if(CN.looksLikeRawArena(payload))
+      return flashMsg(name + " is a raw arena result. Run: python -m harness.export_replay " + name);
+    return flashMsg(name + ": no replay games in there");
+  }
+  list.forEach(function(g){ if(!g.source) g.source = name; });
+  var added = loadGames(list, {select:true});
+  flashMsg(added ? "loaded " + added + " game(s) from " + name
+                 : "already loaded " + name);
+}
+var msgTimer = null;
+function flashMsg(text){
+  var drop = $("drop");
+  drop.dataset.orig = drop.dataset.orig || drop.innerHTML;
+  drop.innerHTML = "<b>" + esc(text) + "</b>";
+  clearTimeout(msgTimer);
+  msgTimer = setTimeout(function(){ drop.innerHTML = drop.dataset.orig; wireDrop(); }, 4500);
+}
+function readFiles(files){
+  Array.prototype.forEach.call(files, function(file){
+    var reader = new FileReader();
+    reader.onload = function(){ ingestText(String(reader.result), file.name); };
+    reader.readAsText(file);
+  });
+}
+function wireDrop(){
+  var input = $("file");
+  if(input) input.addEventListener("change", function(){ readFiles(input.files); });
+}
+
+/* ---------- boot ---------- */
+(function init(){
+  var payload = window.CN_EMBEDDED || {};
+  var games = CN.normalisePayload(payload);
+
+  if(/[?&]selftest=1/.test(location.search)){
+    runSelfTest(games);
+    return;
+  }
+
+  loadGames(games);
+  if(!games.length) renderGameList();
+
+  $("b-play").addEventListener("click", togglePlay);
+  $("b-next").addEventListener("click", function(){ stepBy(1); });
+  $("b-prev").addEventListener("click", function(){ stepBy(-1); });
+  $("b-first").addEventListener("click", function(){ pause(); goTo(0, false); });
+  $("b-last").addEventListener("click", function(){ pause(); goTo(App.frames.length - 1, false); });
+  $("scrub").addEventListener("input", function(){ pause(); goTo(+this.value, false); });
+  $("speed").addEventListener("change", function(){ App.speed = parseFloat(this.value); });
+  $("spybtn").addEventListener("click", function(){ setSpy(!App.spy); });
+  wireDrop();
+
+  ["dragenter", "dragover"].forEach(function(ev){
+    document.addEventListener(ev, function(e){
+      e.preventDefault(); document.body.classList.add("dragging");
+    });
+  });
+  ["dragleave", "drop"].forEach(function(ev){
+    document.addEventListener(ev, function(e){
+      if(ev === "dragleave" && e.relatedTarget) return;
+      document.body.classList.remove("dragging");
+    });
+  });
+  document.addEventListener("drop", function(e){
+    e.preventDefault();
+    if(e.dataTransfer && e.dataTransfer.files.length) readFiles(e.dataTransfer.files);
+  });
+
+  document.addEventListener("keydown", function(e){
+    if(e.target && /^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName) && e.key !== "Escape") return;
+    var k = e.key;
+    if(k === " "){ e.preventDefault(); togglePlay(); }
+    else if(k === "ArrowRight"){ e.preventDefault(); e.shiftKey ? (pause(), goTo(CN.turnJump(App.game, App.step, 1), false)) : stepBy(1); }
+    else if(k === "ArrowLeft"){ e.preventDefault(); e.shiftKey ? (pause(), goTo(CN.turnJump(App.game, App.step, -1), false)) : stepBy(-1); }
+    else if(k === "Home"){ pause(); goTo(0, false); }
+    else if(k === "End"){ pause(); goTo(App.frames.length - 1, false); }
+    else if(k === "s" || k === "S"){ setSpy(!App.spy); }
+    else if(k === "r" || k === "R"){ pause(); goTo(0, false); }
+    else if(k === "j" || k === "J"){ shiftGame(1); }
+    else if(k === "k" || k === "K"){ shiftGame(-1); }
+    else if(k === "["){ cycleSpeed(-1); }
+    else if(k === "]"){ cycleSpeed(1); }
+  });
+})();
+</script>
+</body>
+</html>

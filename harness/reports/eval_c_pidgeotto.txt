@@ -1,0 +1,51 @@
+NOTE ON PROVENANCE
+Measured on the WITHDRAWN aggressive clue-number variant, not on the config
+now on main.  The headline result -- 85% red win rate, up from Pidgey's 70% --
+is the validation of the two-team urgency fix (the guesser now takes the bonus
+guess when the opponent is one or two words from winning, instead of demanding
+leftover support it rarely has).  That fix IS on main.  The clue-number knobs
+that were withdrawn also contributed here (red clue number averaged 1.85), so
+this number is an upper bound on the shipped config, not a measurement of it.
+
+====================================================================
+eval C -- obirdy vs heuristic, two teams, 20 seeds (withdrawn variant)
+====================================================================
+  games                  20  (completed 20, errored 0)
+  word pools             default
+
+TWO TEAMS
+  games                  20
+  red win rate           85.0%   (17/20, 95% CI 64.0% - 94.8%)
+  blue win rate          15.0%   (3/20, 95% CI 5.2% - 36.0%)
+  mean turns/game        9.60  95% CI [8.35, 10.85]
+  assassin rate          5.0%   (1/20, 95% CI 0.9% - 23.6%)
+
+  win rate by pairing
+    codemaster + guesser                                             games   wins win rate          
+    codemaster_obirdy.AICodemaster + guesser_obirdy.AIGuesser           20     17 85.0% [64.0%, 94.8%]
+    codemaster_heuristic.AICodemaster + guesser_heuristic.AIGuesser     20      3 15.0% [5.2%, 36.0%]
+
+ROBUSTNESS
+  clues issued           192
+  illegal clues          0  (0.0%)  <- must be 0
+  assassin rate (all)    5.0%   (1/20, 95% CI 0.9% - 23.6%)
+  clue number blue_cm    mean 1.29   (1x67 2x16 3x3 4x1)
+  clue number red_cm     mean 1.85   (1x39 2x45 3x19 4x2)
+
+LATENCY  (seconds per agent call)
+  calls                  750
+  mean / p50 / p90       1.7897 / 0.0001 / 8.1924
+  p95 / p99 / max        9.3280 / 11.2523 / 33.1635
+    blue_cm              n=87     p50=0.0108 p95=0.0229 max=0.0411
+    blue_g               n=211    p50=0.0000 p95=0.0001 max=0.0002
+    red_cm               n=105    p50=8.6521 p95=11.2655 max=33.1635
+    red_g                n=347    p50=0.0000 p95=3.6564 max=25.5328
+
+  wall clock / game      mean 67.125 s, p95 90.030 s, max 100.003 s
+
+API USAGE  (our evaluation spend, estimated)
+  models                 claude-sonnet-5 x525
+  calls / retries / fail 525 / 4 / 0
+  tokens in / out        189322 / 122207
+  estimated cost         $2.4011  ($0.1201 per game)
+====================================================================
