@@ -1,8 +1,8 @@
-# harness/ — evaluation infrastructure
+# harness/, evaluation infrastructure
 
 Everything in this directory is **ours** and is **not submitted**. It measures agents
 that run inside the vendored competition framework in `framework/`, which is the
-official 2026 code and is never modified — we only *add* files under
+official 2026 code and is never modified, we only *add* files under
 `framework/players/`.
 
 Requirements: Python 3.9+, `colorama` (already needed by the framework). The
@@ -28,7 +28,7 @@ harness/
 `python -m pytest harness/ -q` runs all 299 offline; neither file needs a key
 or a network.
 
-## `package_submission.py` — cutting the zip
+## `package_submission.py`, cutting the zip
 
 The organisers will not set a per-team environment variable (two entries both
 wanting `ANTHROPIC_API_KEY` would clash), so the tournament key ships *inside*
@@ -57,17 +57,17 @@ INSTRUCTIONS.md
 Then it reopens the finished zip and checks the bytes that will actually be
 sent: one `HARDCODED_API_KEY` assignment per file, the key present exactly once
 and the placeholder gone. The key is never printed, not even a prefix. A zip
-carrying a real key must have `keyed` in its filename — that is the pattern
+carrying a real key must have `keyed` in its filename, that is the pattern
 `.gitignore` matches, and the script refuses any other name.
 
-## `simtable.py` — the codemaster's bundled similarity table
+## `simtable.py`, the codemaster's bundled similarity table
 
 Unlike everything else here, this script's *output* is submitted:
 `framework/players/oBirdy/obirdy_simtable.bin.gz` ships in the agent's own
 per-team subfolder (which is where the organisers want auxiliary files) and is
 committed. It holds GloVe cosines between a clue vocabulary and the board word
 pool, so the codemaster can see that a clue pulls harder on the assassin than
-on the word its number is buying — the failure the LLM panel is structurally
+on the word its number is buying, the failure the LLM panel is structurally
 blind to, because the panel only reports words it happened to rank.
 
 ```bash
@@ -77,7 +77,7 @@ python -m harness.simtable --build --stats
 
 Rebuild it whenever the clue vocabulary or the board pool changes. The
 codemaster degrades to a no-op without it, so a fresh checkout that has never
-run the builder still plays legally — the shipped file just means it never has
+run the builder still plays legally, the shipped file just means it never has
 to.
 
 **Read the `--wide` cache, not `glove_cache.npz`.** The 60k cache Abra uses
@@ -85,13 +85,13 @@ cannot see two thirds of the slang pool: `PLATYPUS` is GloVe rank 68860,
 `PIKACHU` 92066, `XENOMORPH` 375895, `SPEEDRUN` 398546. Building against the
 shallow cache is still supported (it is the automatic fallback) but produces a
 table that covers 123 of the 232 slang words instead of 193. The other 39 are
-not in GloVe 6B at all, in any casing or hyphenation — `TIKTOK`, `FORTNITE`,
-`BLOCKCHAIN`, `LOOTBOX`, `YEET` and friends postdate the 2014 corpus — and
+not in GloVe 6B at all, in any casing or hyphenation, `TIKTOK`, `FORTNITE`,
+`BLOCKCHAIN`, `LOOTBOX`, `YEET` and friends postdate the 2014 corpus, and
 `simtable.UNREACHABLE_SLANG` names them so no future coverage number pretends
 otherwise. The themed pools cost nothing there: `UNREACHABLE_THEMED` is empty,
 because every themed word is in GloVe 6B. `HYRULE` (rank 195170) and `DRUMKIT`
 (269862) are below the wide cache's 150k prefix, which is why
-`glove_data.pool_words` names the themed pools too — rebuild the wide cache
+`glove_data.pool_words` names the themed pools too, rebuild the wide cache
 after editing a pool, or those words come back as unpriceable.
 
 The board vocabulary is three separately-ranked banks, because the competition
@@ -140,7 +140,7 @@ All commands run from the repo root (the `harness` package must be importable).
 
 ---
 
-## `arena.py` — batch runner
+## `arena.py`, batch runner
 
 ```python
 from harness import arena, stats
@@ -197,12 +197,12 @@ the original `__name__`, so nothing downstream can tell the difference.
 
 ### Clue legality
 
-The engine does **not** validate clues at all — the bundled `codemaster_GPT`
+The engine does **not** validate clues at all, the bundled `codemaster_GPT`
 polices itself. The arena therefore audits every clue independently against the
 competition rules: single alphabetic English word, number ≥ 1, and neither
 containing nor contained by any unrevealed board word. Any violation lands in
 `illegal_clues` with a reason. **The reported illegal-clue rate for our agents
-must be 0** — a malformed response is a disqualification at the real event.
+must be 0**, a malformed response is a disqualification at the real event.
 
 ### Turn cap
 
@@ -213,14 +213,14 @@ the game is recorded with an `error` instead of hanging the batch.
 
 ---
 
-## `secret_pool.py` — alternative word pools
+## `secret_pool.py`, alternative word pools
 
 The real competition pool is secret and may include slang / pop-culture words.
 `SLANG_POOL` bundles ~230 such words (`HOGWARTS`, `XENOMORPH`, `TIKTOK`,
 `POKEMON`, `CYBERPUNK`, `SPEEDRUN`, …) for generalisation testing.
 
 **Injection approach.** `game.Game.__init__` hard-codes
-`open("players/cm_wordlist.txt")` — a path relative to the process cwd, with no
+`open("players/cm_wordlist.txt")`, a path relative to the process cwd, with no
 kwarg to override it. The clean fix that leaves the framework untouched is to
 build a throwaway sandbox directory containing `players/cm_wordlist.txt` and run
 the game with that directory as cwd, keeping `framework/` on `sys.path` for
@@ -241,7 +241,7 @@ secret_pool.destroy_sandbox(sandbox)
 
 `generate_board` replays the engine's own RNG sequence (seed → shuffle pool →
 take 25 → shuffle key grid), so it reproduces exactly the board a given seed will
-produce — handy for previewing boards without playing them:
+produce, handy for previewing boards without playing them:
 
 ```bash
 python -m harness.secret_pool --pool slang --seeds 0-2
@@ -249,7 +249,7 @@ python -m harness.secret_pool --pool slang --seeds 0-2
 
 ---
 
-## `stats.py` — aggregation and reporting
+## `stats.py`, aggregation and reporting
 
 ```python
 from harness import stats
@@ -260,21 +260,21 @@ print(stats.format_report(results, title="v1 vs baseline"))
 
 Reported:
 
-- **Single team** — mean score with a 95% t-interval, score range, win rate
+- **Single team**, mean score with a 95% t-interval, score range, win rate
   (Wilson interval), mean turns on wins, mean red words found, assassin rate.
-- **Two teams** — red/blue win rates with Wilson intervals, mean turns per game,
+- **Two teams**, red/blue win rates with Wilson intervals, mean turns per game,
   and a win-rate table broken down by codemaster+guesser pairing.
-- **Robustness** — clues issued, illegal-clue count and rate (with examples),
+- **Robustness**, clues issued, illegal-clue count and rate (with examples),
   overall assassin rate, crash count with example tracebacks.
-- **Latency** — p50/p90/p95/p99/max seconds per agent call, overall and per role
+- **Latency**, p50/p90/p95/p99/max seconds per agent call, overall and per role
   (`red_cm`, `red_g`, `blue_cm`, `blue_g`), plus wall clock per game. The event's
   soft limit is 60 s per response, so watch p95/max on the LLM agents.
 
-Pure standard library — no numpy/scipy — so it runs anywhere the framework does.
+Pure standard library, no numpy/scipy, so it runs anywhere the framework does.
 
 ---
 
-## `llm_backend.py` — pluggable chat models
+## `llm_backend.py`, pluggable chat models
 
 ```python
 from harness.llm_backend import get_backend
@@ -293,7 +293,7 @@ print(llm.stats())      # calls, retries, failures, mean latency, token counts
 |---|---|---|
 | `openai` | `OPENAI_API_KEY` | Chat Completions; `pip install openai` |
 | `anthropic` | `ANTHROPIC_API_KEY` | Messages API; `pip install anthropic` |
-| `mock` | — | deterministic and offline |
+| `mock` |, | deterministic and offline |
 
 - **Keys come from environment variables only.** They are never accepted as
   literals, never written to disk, and never logged. Clients are constructed
@@ -303,7 +303,7 @@ print(llm.stats())      # calls, retries, failures, mean latency, token counts
 - **Retries** use exponential backoff with jitter (`max_retries`, `base_delay`,
   `max_delay`). The provider SDKs' own retry logic is disabled so there is a
   single retry policy. Worst-case wall clock is
-  `timeout * (max_retries + 1)` plus backoff — size it against the 60 s soft
+  `timeout * (max_retries + 1)` plus backoff, size it against the 60 s soft
   limit.
 - **`timeout`** is per attempt, settable on the constructor and per `chat()` call.
 - **Temperature** is only forwarded when explicitly passed, because current
@@ -320,8 +320,8 @@ their own inlined one, and it now speaks two providers:
 | `openai_compat` | `POST {base}/chat/completions` over stdlib `urllib` | `OBIRDY_COMPAT_KEY`, else `HF_TOKEN` |
 
 **Anthropic stays the default and the competition configuration.** The compat
-path exists so pipeline plumbing — does a full game run end to end, does the
-probe fire, does the guesser parse a real model's JSON — can be exercised on
+path exists so pipeline plumbing, does a full game run end to end, does the
+probe fire, does the guesser parse a real model's JSON, can be exercised on
 Hugging Face's free router without touching competition credits. It adds no
 dependency: the `anthropic` import is lazy, so compat mode works on a machine
 where the SDK is not installed.
@@ -366,18 +366,18 @@ Added, never modifying anything that shipped:
 
 | file | class | behaviour |
 |---|---|---|
-| `heuristic_common.py` | — | shared word-similarity + clue-legality helpers |
+| `heuristic_common.py` |, | shared word-similarity + clue-legality helpers |
 | `codemaster_heuristic.py` | `AICodemaster` | scores a bundled clue vocabulary by letter overlap and a small association table, penalising blue/civilian/assassin |
 | `guesser_heuristic.py` | `AIGuesser` | picks the highest-similarity unrevealed word; stops at the clue number |
 | `codemaster_random.py` | `AICodemaster` | uniformly random *legal* clue, number 1 (weak ladder floor) |
 | `guesser_random.py` | `AIGuesser` | uniformly random unrevealed word |
-| `glove_common.py` | — | shared GloVe cache loader + legality helper (Abra) |
+| `glove_common.py` |, | shared GloVe cache loader + legality helper (Abra) |
 | `codemaster_glove.py` | `AICodemaster` | **Abra**: cosine-similarity clue search with an assassin margin |
 | `guesser_glove.py` | `AIGuesser` | **Abra**: ranks the board by cosine similarity to the clue |
 
 The random (**Magikarp**) and heuristic (**Rattata**) pairs exist to finish
-games legally and instantly with no network — they are not competition entries
-and make no attempt to play well (heuristic beats random 10–0, and single-team
+games legally and instantly with no network, they are not competition entries
+and make no attempt to play well (heuristic beats random 10 to 0, and single-team
 heuristic-vs-heuristic scores ~19). **Abra** is the one partner that plays for
 real: see below. They subclass the
 framework ABCs with the same constructor signature as `codemaster_GPT` /
@@ -391,7 +391,7 @@ python run_game.py players.codemaster_heuristic.AICodemaster \
                    players.guesser_random.AIGuesser --seed 42
 ```
 
-### Abra — the GloVe embedding partner
+### Abra, the GloVe embedding partner
 
 Rattata is a *legality* floor: it finishes games, but its "associations" are
 letter overlap, so it says nothing about whether our clues are decodable by a
@@ -402,9 +402,9 @@ evaluation actually puts us next to, so it is what we measure against. Keep the
 Rattata/Magikarp pairs as the ladder floor.
 
 Abra may depend on numpy and on downloaded vectors precisely because it is
-**not** submitted — no submitted agent could assume either.
+**not** submitted, no submitted agent could assume either.
 
-**Download the vectors (once, ~860 MB; `data/` is gitignored — never commit it):**
+**Download the vectors (once, ~860 MB; `data/` is gitignored, never commit it):**
 
 ```bash
 mkdir -p data
@@ -424,8 +424,8 @@ clue candidates are a prefix of its cache, so deepening `glove_cache.npz` would
 have changed what Abra says and made every recorded baseline incomparable.
 Only the table builder reads the wide file.
 
-**Without the cache the agents still run** — they fall back to the Rattata
-letter-overlap score — so a fresh checkout passes the test suite. The
+**Without the cache the agents still run**, they fall back to the Rattata
+letter-overlap score, so a fresh checkout passes the test suite. The
 embedding-specific tests in `harness/test_partners.py` skip instead of failing.
 
 ```bash
@@ -436,7 +436,7 @@ python -m harness.arena --single-team --seeds 0-7 \
 
 ---
 
-## `sweep.py` — paired config sweeps
+## `sweep.py`, paired config sweeps
 
 Every config in a sweep plays the **same** seed set, so a half-turn difference
 is a real difference and not seed luck. The spec is a JSON map of config name →
@@ -454,7 +454,7 @@ python -m harness.sweep --spec sweeps/numbers.json --seeds 0-29 --jobs 6 \
 ```
 
 The table reports mean score with its interval, assassin rate, **mean clue
-number**, and estimated USD spent — clue number because it is the most direct
+number**, and estimated USD spent, clue number because it is the most direct
 lever on single-team score, and spend because these runs are funded by us.
 
 Cost accounting rides on the agents' own `usage_summary()`: `arena` collects it
@@ -476,7 +476,7 @@ Bundled specs in `harness/sweeps/`:
 
 ---
 
-## `eval_battery.py` — the pending sonnet battery and its bill
+## `eval_battery.py`, the pending sonnet battery and its bill
 
 Everything the Pidgeot decision needs, priced before a credit is spent. The
 script **does not call an API**; printing the plan is the default and `--run`
@@ -491,14 +491,14 @@ python -m harness.eval_battery --run eval_x_abra --yes
 
 **Estimated cost, as of the last measured runs: ~$19.70 for the core battery
 (106 games, ~4,100 calls), ~$23.70 including the optional two-team pidgeot
-arm (126 games, ~4,900 calls).** Expect roughly 35–45 minutes of wall clock at
+arm (126 games, ~4,900 calls).** Expect roughly 35 to 45 minutes of wall clock at
 `--jobs 4`.
 
 | run | games | calls | est. $ | what it settles |
 |---|---|---|---|---|
 | `eval_ab_default` | 30 | 1200 | 5.76 | eval A protocol, default vs pidgeot preset, paired seeds |
 | `eval_ab_slang` | 20 | 800 | 3.84 | eval B protocol, same two arms on the slang pool |
-| `eval_c_default` | 20 | 640 | 3.07 | eval C on the **shipped** config — the number the Pidgeotto tagging gate is still missing |
+| `eval_c_default` | 20 | 640 | 3.07 | eval C on the **shipped** config, the number the Pidgeotto tagging gate is still missing |
 | `eval_x_abra` | 16 | 312 | 1.50 | cross-pairing with Abra, both directions (the recorded attempt ran on a dead API and is void) |
 | `panel_isolated_ab` | 20 | 1150 | 5.52 | batched vs isolated panel calls |
 | `eval_c_pidgeot`\* | 20 | 840 | 4.03 | eval C on the pidgeot preset; only worth it if the solo arms look promotable |
@@ -523,8 +523,8 @@ a calls-per-game figure per run shape decomposed from those same runs:
 | a stranger's codemaster + our guesser | 17 | 2 guesser samples per turn |
 | panel isolated (`panel_isolated=3`) | 79 | 9 codemaster calls per clue |
 
-Sanity check: measured per-game spend across those runs was $0.120–$0.189, and
-the battery works out to ~$0.19/game, which is the top of that range — the
+Sanity check: measured per-game spend across those runs was $0.120-$0.189, and
+the battery works out to ~$0.19/game, which is the top of that range, the
 probe arms are supposed to be the expensive ones.
 
 ---
@@ -533,18 +533,18 @@ probe arms are supposed to be the expensive ones.
 
 Discovered by reading `framework/game.py` and `framework/players/*_GPT.py`:
 
-1. **Players are constructed positionally** — `codemaster_red("Red", **cmr_kwargs)`.
+1. **Players are constructed positionally**, `codemaster_red("Red", **cmr_kwargs)`.
    Team is the first positional argument, not a kwarg. Match the GPT signature:
    `def __init__(self, team="Red", ...)`.
 2. **The board is 9 red / 8 blue / 7 civilian / 1 assassin**, and **red moves
-   first** — so red has one more word to find than blue.
+   first**, so red has one more word to find than blue.
 3. **`turn_counter` counts clues from both teams** and is not exposed on the
    `Game` object; only `write_results()` ever sees it.
 4. **Board words and log files use cwd-relative paths** (`players/cm_wordlist.txt`,
    `results/…`). Anything that runs `Game` must control the cwd.
 5. **`do_print=False` swaps out `sys.stdout` and *closes* it in `Game.__del__`.**
    The arena keeps `do_print=True` and uses `contextlib.redirect_stdout` instead.
-6. **A guesser returning `None` does not end the turn** — the engine breaks the
+6. **A guesser returning `None` does not end the turn**, the engine breaks the
    inner loop and re-enters with the same team, so it can spin forever.
 7. **Clue legality is not enforced by the engine.** Validation lives inside the
    agents; the organisers additionally have human judges reviewing clue spirit.
@@ -554,6 +554,6 @@ Discovered by reading `framework/game.py` and `framework/players/*_GPT.py`:
 9. **`run_game.py --single_team` takes a raw string**, so any value at all
    (including `--single_team False`) is truthy. Prefer `arena.run_batch` or the
    `Game(..., single_team=True)` kwarg over the CLI flag.
-10. **`players/` has no `__init__.py`** — it works as a namespace package as long
+10. **`players/` has no `__init__.py`**, it works as a namespace package as long
     as `framework/` is on `sys.path`. Shared code between our agents can live in
     a module there and be imported as `from players import <module>`.

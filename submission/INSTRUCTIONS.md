@@ -1,6 +1,7 @@
-# Team oBirdy — Codenames AI Competition 2026 submission
+# Team oBirdy, Codenames AI Competition 2026 submission
 
-Contact: Manan Gupta (Discord: team oBirdy private channel)
+Contact: Manan Gupta, team oBirdy. (This is the instruction sheet as sent to the
+competition organizers. In this public copy the embedded API key is a placeholder.)
 
 ## Files
 
@@ -24,7 +25,7 @@ pip install -U anthropic colorama
 **Please use `-U`: `anthropic >= 0.60` is required.** The `-U` matters. Releases
 before 0.60 have no `thinking` parameter on `messages.create`, so the model
 keeps extended thinking on, spends the whole token budget on a reasoning block
-and returns no text — which turns both agents into their much weaker offline
+and returns no text, which turns both agents into their much weaker offline
 fallback. The agents now route the parameter through `extra_body` so an older
 SDK still works, and they print a warning when they see one:
 
@@ -36,7 +37,7 @@ If that line appears, `pip install -U anthropic` and re-run. (Very old releases
 also need `httpx < 0.28`, which is one more reason to just take the current
 one.)
 
-**Beyond that there is no setup — no environment variable is needed.** Our API key is
+**Beyond that there is no setup, no environment variable is needed.** Our API key is
 embedded in both agent files and its funding is ours. If you ever need to
 override it, `ANTHROPIC_API_KEY` takes precedence over the embedded key:
 
@@ -80,7 +81,7 @@ Then one line per move:
 
 **If anything goes wrong with the API the agents say so rather than degrading
 quietly.** Both fall back to a deterministic offline mode that plays legally but
-much worse — every clue numbered 1, drawn from a fixed vocabulary — and that
+much worse, every clue numbered 1, drawn from a fixed vocabulary, and that
 fallback always announces itself:
 
 ```
@@ -88,7 +89,7 @@ fallback always announces itself:
 [oBirdy] WARNING: no API key found (checked the api_key kwarg, ANTHROPIC_API_KEY, and the embedded HARDCODED_API_KEY) -- every clue will come from the offline fallback
 ```
 
-If you see a `WARNING` line, the agent is **not** running as intended — please
+If you see a `WARNING` line, the agent is **not** running as intended, please
 tell us. Set `OBIRDY_QUIET=1` to silence everything except those warnings.
 
 ## Notes for the organisers
@@ -96,11 +97,11 @@ tell us. Set `OBIRDY_QUIET=1` to silence everything except those warnings.
 - **External service:** the agents call the Anthropic API (codemaster: `claude-opus-5`, guesser: `claude-sonnet-5`).
   The key and its funding are provided by us. `OBIRDY_MODEL` can override the
   model if ever needed.
-- **Latency:** typical clue/guess responses are 3–14 s; worst observed 36 s. Both
+- **Latency:** typical clue/guess responses are 3 to 14 s; worst observed 36 s. Both
   agents enforce an internal ~45 s deadline (under the 60 s soft limit) and
   degrade gracefully rather than overrun it.
 - **Robustness:** if the API is unreachable mid-game, the agents still return
-  legal, well-formatted moves via the offline fallback — they never raise and
+  legal, well-formatted moves via the offline fallback, they never raise and
   never produce a malformed response.
 - **Fair play:** the agents read only the arguments the framework passes them
   (plus their own bundled data file). They do not read the framework's log files

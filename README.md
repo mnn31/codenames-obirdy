@@ -1,140 +1,148 @@
-# oBirdy — 1st place, Single Team track, IEEE CoG 2026 Codenames AI Competition
+# oBirdy: 1st place, Single Team track, IEEE CoG 2026 Codenames AI Competition
 
-Competition agents and evaluation infrastructure for the
-[Codenames AI Competition](https://github.com/stepmat/Codenames_GPT) at the
-IEEE Conference on Games 2026.
+Competition agents and evaluation tooling for the
+[Codenames AI Competition](https://github.com/stepmat/Codenames_GPT) at the IEEE
+Conference on Games 2026.
 
 | Track | Result |
 |---|---|
-| **Single Team** (mixed partners, 75 games) | **🥇 1st — 12.27 mean score** |
-| Two Teams (72 games) | 7th — 47.2% win rate |
-| **Overall** (average rank across both tracks) | **🥈 2nd of 12 teams** |
+| **Single Team** (mixed partners, 75 games) | **1st place, 12.27 mean score** |
+| Two Teams (72 games) | 7th place, 47.2% win rate |
+| **Overall** (average rank across both tracks) | **2nd place of 12 teams** |
 
-Entered solo by a high-school student. The field was 12 teams (6 returning, 5 new)
-plus a GPT-4.1 baseline built from the organizers' own reference agents.
-
----
+The field was 12 teams (6 returning, 5 new) plus a GPT-4.1 baseline built from the
+organizers' reference agents. This entry was written solo by a high school student.
 
 ## What the agents do
 
-Two agents: a **codemaster** (gives clues) and a **guesser**. Both are single
-self-contained Python files, plus one bundled data file.
+There are two agents: a codemaster that gives clues, and a guesser that interprets
+them. Each is a single self-contained Python file, plus one bundled data file.
 
-### Codemaster: propose → simulate → verify
+### The codemaster: propose, simulate, then verify
 
-Rather than asking a model for a clue and trusting it, each turn runs a pipeline:
+Instead of asking a model for a clue and trusting the answer, every turn runs
+through a pipeline.
 
-1. **Propose.** The LLM brainstorms ~8 candidate clues over subsets of our words,
-   including words left over from earlier clues (read from the framework's shared
-   move history).
-2. **Filter.** Strict legality: a single alphabetic English word, no sub-word
-   derivation in either direction against any unrevealed board word.
-3. **Simulate.** For every surviving candidate, sampled LLM calls play the role of
-   a *key-blind teammate* and rank the whole board. This is a Monte Carlo estimate
-   of what a partner would actually do — not the proposing model's opinion of its
-   own clue.
-4. **Score.** Expected number of our words found before the first mistake, minus
-   penalties, with the assassin weighted ~7–9× everything else. The scoring
-   asymmetry is deliberate: in the single-team track a loss costs 25 against a
-   mean near 7, so one assassin pick erases several games of good play.
-5. **Verify, twice, independently.**
-   - a **danger probe** — one more LLM call that asks point-blank how strongly the
-     winning clue pulls toward the assassin and each opponent word (0–10). A high
-     rating vetoes the clue and the next candidate is probed instead;
-   - an **embedding sensor** — a bundled quantized GloVe similarity table
-     (`framework/players/oBirdy/obirdy_simtable_v2.bin.gz`, 30k clue words ×
-     1.7k board words) that flags clues geometrically close to the assassin, and
-     demotes clues no embedding knows at all.
+**Propose.** The model brainstorms about 8 candidate clues over subsets of our
+words. Words left over from earlier clues get fed back in, read from the
+framework's shared move history.
 
-   The two checks exist because they **fail differently**: the LLM misses
-   geometric proximity, embeddings miss cultural and lateral leaps.
-6. **The number is computed, not claimed.** The clue number is the longest
-   all-ours prefix the simulated panel actually produces, capped further if the
-   probe still rates the clue mildly dangerous.
+**Filter.** Clues have to be a single alphabetic English word with no sub-word
+derivation in either direction against any unrevealed board word.
 
-### Guesser
+**Simulate.** For each surviving candidate, extra model calls play the role of a
+teammate who cannot see the key, and rank the whole board. This gives a Monte
+Carlo estimate of what a partner would actually do with the clue, which is a very
+different thing from asking the proposing model how good its own clue was.
 
-Ranks the remaining words from several LLM samples with the word order shuffled
-per sample (position bias is real and measurable), blends model scores with a
-rank-based term, and applies a calibrated stop rule: the mandatory first guess is
-free, further guesses continue while the next candidate stays confident relative
-to the turn's best. It tracks unexhausted clues across turns and handles clue
-number `0` (unlimited guesses) as a bounded sweep.
+**Score.** Each candidate gets an expected value: how many of our words the
+simulated teammate finds before the first mistake, minus penalties. The assassin
+carries roughly 7 to 9 times the weight of anything else. That asymmetry is
+deliberate, because in the single team track a loss scores 25 against a mean
+around 7, so one assassin pick wipes out several games of good play.
 
-### Race awareness (two-team track only)
+**Verify twice, independently.** The winning candidate then has to survive two
+separate checks:
 
-The codemaster estimates each side's words-per-turn pace from the move history and
-projects who reaches their last word first. When projected to *lose* the race, it
-interpolates toward more ambitious clue numbers; level or ahead, it stays
-conservative. Single-team behaviour is byte-identical with this disabled — in that
-track a slow win still scores, so there is nothing to gamble for.
+* a danger probe, which is one more model call that asks directly how strongly the
+  clue pulls toward the assassin and each opponent word on a 0 to 10 scale. A high
+  rating vetoes the clue and the next candidate gets probed instead.
+* an embedding sensor, which reads a bundled quantized GloVe similarity table
+  (`framework/players/oBirdy/obirdy_simtable_v2.bin.gz`, 30k clue words by 1.7k
+  board words). It flags clues that sit geometrically close to the assassin, and
+  demotes clues that no embedding recognizes at all.
+
+Both exist because they fail in different ways. The model check misses geometric
+proximity, and the embedding check misses cultural or lateral associations. Using
+either one alone leaves a hole.
+
+**The number is computed, not claimed.** The clue number is the longest run of our
+own words that the simulated panel actually produces, capped further if the probe
+still rates the clue mildly dangerous.
+
+### The guesser
+
+It ranks the remaining words using several model samples, with the word order
+shuffled for each sample, because position bias is real and measurable. Model
+scores get blended with a rank based term. The stop rule is calibrated rather than
+asked for: the first guess of a turn is mandatory and free, and further guesses
+continue while the next candidate stays confident relative to the best word of the
+turn. It also remembers clues from earlier turns that were never fully used, and
+handles a clue number of 0 (unlimited guesses) as a bounded sweep.
+
+### Race awareness in the two team track
+
+The codemaster estimates how many words per turn each side is finding, using the
+move history, and projects who will reach their last word first. When it projects
+a loss, it shifts toward more ambitious clue numbers in proportion to how far
+behind it is. When level or ahead it stays conservative. Single team play is
+byte identical with this turned off, since a slow win still scores there and
+there is nothing to gamble for.
 
 ### Not losing on technicalities
 
-A crash or malformed response is a disqualification, so: hard per-move wall
-(~45–50 s against the competition's 60 s soft limit) enforced off-thread, retry
-with backoff, compatibility shims for old SDK versions, and a deterministic
-offline fallback that plays legally when the API is unreachable. Every fallback
-announces itself in the logs rather than degrading silently.
+A crash or a malformed response means disqualification, so the agents are built to
+survive bad conditions. There is a hard per move wall of about 45 to 50 seconds
+against the competition's 60 second soft limit, enforced on a separate thread, plus
+retries with backoff, compatibility handling for old SDK versions, and a
+deterministic offline fallback that plays legally when the API cannot be reached.
+Every fallback prints a warning instead of degrading quietly, which is how a
+funding lapse got caught during the competition window rather than after it.
 
----
+## Findings that might be useful to other entrants
 
-## Findings other entrants may care about
+**A framework detail that silently disables stop rules.** `game.Game.run` calls
+`set_board()`, then `get_answer()`, then reveals the guessed word in its own list,
+then calls `keep_guessing()`, with no `set_board()` in between. An agent that
+cached the board is therefore reasoning about a board that is one guess out of
+date. The word it just guessed still looks unrevealed, so it ranks first again as
+"the next candidate" and every confidence ratio comes out at 1.0. Before this was
+fixed, first guesses here were 91% accurate while bonus guesses were 15%.
 
-**1. A framework gotcha that silently disables stop rules.**
-`game.Game.run` calls `set_board()`, then `get_answer()`, then reveals the guessed
-word *in its own list*, then calls `keep_guessing()` — with no `set_board()` in
-between. An agent that cached the board is therefore reasoning about a board one
-guess stale: the word just guessed still looks unrevealed and re-ranks first, so
-every confidence ratio comes out 1.0 and the stop rule becomes dead code. Before
-fixing this, our first guesses were 91% accurate while bonus guesses were 15%.
+**Balance mattered more than peak strength.** The 2026 single team track paired
+each submission's agents with other teams' agents. This entry won it without
+having the best agent in either role. It was second best codemaster at 11.62 and
+second best guesser at 12.49, and the only entry ranked top three in both. The
+team with the strongest codemaster in the whole field, at 11.46, finished fourth
+overall because their guesser ranked tenth.
 
-**2. Balance beat peak strength under mixed pairing.**
-The 2026 single-team track paired each submission's agents with *other teams'*
-agents. We won it without the best agent in either role — we were 2nd-best
-codemaster (11.62) and 2nd-best guesser (12.49), and the only entry ranked top-3
-in both. The team with the single best codemaster in the competition (11.46)
-finished 4th because its guesser ranked 10th.
+**Aggression failed three separate promotion gates.** Raising clue numbers looked
+like a clear improvement on first measurement three separate times, and died on
+paired re-runs every time. Small sample noise in this benchmark is severe. Nothing
+in this repository shipped without a paired seed comparison on identical boards,
+which is the reason the harness exists at all.
 
-**3. Aggression failed three separate promotion gates.**
-Raising clue numbers looked like a clear win on first measurement three times and
-died on paired re-runs every time — small-sample noise in this benchmark is
-vicious. Nothing shipped here without a paired-seed comparison on identical
-boards; the harness exists for exactly that reason.
+**Safety worked, and it was not free.** Zero assassin losses across 72 two team
+games, one of six clean sheets in the field. The same conservatism finished 7th in
+that track, where losing a race and hitting the assassin score exactly the same.
+The winning duel entry simply moved faster, winning in 6.36 turns on average
+against 9.59 here. Risk should probably be calibrated per track, and this one was
+tuned for the track it won.
 
-**4. Safety held, and it wasn't free.**
-Zero assassin losses in 72 two-team games (one of six clean sheets in the field) —
-but the same conservatism finished 7th in that track, where a race loss and an
-assassin loss score identically. The winning duel entry simply played faster:
-6.36 turns per win against our 9.59. Risk calibration should be *per track*, and
-ours was tuned for the track we won.
-
----
-
-## Repository layout
+## Layout
 
 ```
-framework/            vendored competition framework (MIT, unmodified) + agents
-  players/codemaster_obirdy.py    our codemaster  (single file)
-  players/guesser_obirdy.py       our guesser     (single file)
-  players/oBirdy/                 bundled similarity table
+framework/            competition framework (MIT, unmodified) with agents added
+  players/codemaster_obirdy.py   the codemaster, single file
+  players/guesser_obirdy.py      the guesser, single file
+  players/oBirdy/                bundled similarity table
   players/*_heuristic|random|glove|kadabra|typenull|silvally|lycanroc*
-                                  sparring partners and rejected challengers
-harness/              evaluation infrastructure (not part of the submission)
-  arena.py            batch game runner, parallel, per-move instrumentation
+                                 sparring partners and rejected challenger designs
+harness/              evaluation tooling, not part of the submission
+  arena.py            batch game runner, parallel, per move instrumentation
   stats.py            aggregation with confidence intervals
-  sweep.py            paired-seed A/B comparisons
-  secret_pool.py      alternative word pools (slang, themed, organiser-style)
+  sweep.py            paired seed A/B comparisons
+  secret_pool.py      alternative word pools (slang, themed, organizer style)
   simtable.py         builds the bundled similarity table from GloVe
-  test_*.py           ~680 offline tests (no API key needed)
+  test_*.py           about 680 offline tests, no API key required
 tools/viewer.html     self-contained replay viewer for recorded games
-docs/versions.md      full development log: every promotion, every failure
+docs/versions.md      development log, including everything that failed
 ```
 
-`tools/viewer.html` opens in any browser with no setup and replays recorded games
-with a spymaster toggle, autoplay and per-move commentary.
+`tools/viewer.html` opens in a browser with no setup and replays recorded games,
+with a spymaster toggle, autoplay and per move commentary.
 
-## Running
+## Running it
 
 ```bash
 pip install -U anthropic colorama          # anthropic >= 0.60
@@ -144,12 +152,13 @@ python run_game.py players.codemaster_obirdy.AICodemaster \
                    players.guesser_obirdy.AIGuesser \
                    players.codemaster_GPT.AICodemaster \
                    players.guesser_GPT.AIGuesser --seed 42
-# single-team track: add --single_team True
+# for the single team track, add --single_team True
 ```
 
-Models are configurable (`OBIRDY_MODEL`); the submitted configuration used
-`claude-opus-5` for the codemaster and `claude-sonnet-5` for the guesser. Without
-a key the agents still play legally via the offline fallback, and say so loudly.
+Models are configurable through `OBIRDY_MODEL`. The submitted configuration used
+`claude-opus-5` for the codemaster and `claude-sonnet-5` for the guesser. Without a
+key the agents still play legal games through the offline fallback, and say so in
+the logs.
 
 Batch evaluation:
 
@@ -161,20 +170,21 @@ python -m harness.arena --seeds 0-9 --single-team --jobs 4 \
   --blue-g  players.guesser_heuristic.AIGuesser
 ```
 
-## Honest limitations
+## Known limitations
 
-- The two-team result (7th) is the design's real weakness, not bad luck.
-- A residual ~5% single-team assassin rate comes from lateral cultural
-  associations that neither an LLM probe nor GloVe geometry sees. Several
-  attempts to close it failed; it is documented rather than hidden.
-- The bundled table is GloVe 6B, so it is blind to post-2014 coinages; 39 such
-  words are listed explicitly in `harness/simtable.py`.
+The 7th place finish in the two team track reflects a real weakness in the design,
+not bad luck. There is also a residual assassin rate of roughly 5% in single team
+play, caused by lateral cultural associations that neither a model probe nor GloVe
+geometry can see. Several attempts to close that gap failed and are documented in
+`docs/versions.md` rather than hidden. Finally, the bundled table comes from GloVe
+6B, so it does not know post-2014 coinages. The 39 words in that category are
+listed explicitly in `harness/simtable.py`.
 
 ## Attribution
 
-The `framework/` directory is the organizers' competition framework
-([stepmat/Codenames_GPT](https://github.com/stepmat/Codenames_GPT), MIT, see
-`framework/LICENSE_upstream`), vendored unmodified — all of our code is added
-files. Everything else in this repository is MIT licensed (see `LICENSE`).
+The `framework/` directory is the organizers' competition framework from
+[stepmat/Codenames_GPT](https://github.com/stepmat/Codenames_GPT), MIT licensed,
+vendored without modification. See `framework/LICENSE_upstream`. Everything else
+here is MIT licensed under `LICENSE`.
 
-Built by Manan Gupta (team oBirdy).
+Written by Manan Gupta, team oBirdy.
