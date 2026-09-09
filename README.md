@@ -13,6 +13,10 @@ Conference on Games 2026.
 The field was 12 teams (6 returning, 5 new) plus a GPT-4.1 baseline built from the
 organizers' reference agents. This entry was written solo by a high school student.
 
+Official results, per game logs and the competition wordlist are published by the
+organizers on the
+[CoG_2026_competition branch](https://github.com/stepmat/Codenames_GPT/tree/CoG_2026_competition).
+
 ## What the agents do
 
 There are two agents: a codemaster that gives clues, and a guesser that interprets
@@ -111,6 +115,19 @@ like a clear improvement on first measurement three separate times, and died on
 paired re-runs every time. Small sample noise in this benchmark is severe. Nothing
 in this repository shipped without a paired seed comparison on identical boards,
 which is the reason the harness exists at all.
+
+**The embedding sensor was half blind during the actual competition.** The
+competition wordlist was kept secret until after the event, so the bundled
+similarity table was built from the standard pool plus guessed slang and themed
+vocabularies. Now that the real 2026 list is public, the table turns out to cover
+only 58 of its 101 words. The gap splits in two. Some words are genuinely outside
+GloVe 6B, such as RIZZ, GROGU, YEET, NPC and TIKTOK, which no static embedding
+from 2014 can help with. The rest are ordinary English words that GloVe knows
+perfectly well but that never made it into the board vocabulary, like RIVER,
+MOUNTAIN, CANDLE and HAMMER, because the vocabulary was assembled from themed
+guesses rather than from common nouns. That second group was an avoidable
+oversight, and the cheap fix for anyone reusing this is to add a few thousand
+frequent English nouns to the board side of the table.
 
 **Safety worked, and it was not free.** Zero assassin losses across 72 two team
 games, one of six clean sheets in the field. The same conservatism finished 7th in
