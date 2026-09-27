@@ -120,12 +120,12 @@ which is the reason the harness exists at all.
 competition wordlist was kept secret until after the event, so the bundled
 similarity table was built from the standard pool plus guessed slang and themed
 vocabularies. Now that the real 2026 list is public, the table turns out to cover
-only 58 of its 101 words. The gap splits in two. Some words are genuinely outside
-GloVe 6B, such as RIZZ, GROGU, YEET, NPC and TIKTOK, which no static embedding
-from 2014 can help with. The rest are ordinary English words that GloVe knows
-perfectly well but that never made it into the board vocabulary, like RIVER,
-MOUNTAIN, CANDLE and HAMMER, because the vocabulary was assembled from themed
-guesses rather than from common nouns. That second group was an avoidable
+only 58 of its 101 words. At least 32 of the 43 misses are words GloVe 6B knows
+perfectly well (they already appear on the clue side of the table) but that never
+made it into the board vocabulary, like RIVER, MOUNTAIN, CANDLE and HAMMER, because
+the vocabulary was assembled from themed guesses rather than from common nouns.
+A handful of the rest are coinages that postdate the 2014 GloVe corpus, such as
+RIZZ, GROGU, YEET and TIKTOK, which no static embedding from that era can help with. That second group was an avoidable
 oversight, and the cheap fix for anyone reusing this is to add a few thousand
 frequent English nouns to the board side of the table.
 
