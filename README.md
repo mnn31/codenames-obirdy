@@ -106,7 +106,7 @@ fixed, first guesses here were 91% accurate while bonus guesses were 15%.
 **Balance mattered more than peak strength.** The 2026 single team track paired
 each submission's agents with other teams' agents. This entry won it without
 having the best agent in either role. It was second best codemaster at 11.62 and
-second best guesser at 12.49, and the only entry ranked top three in both. The
+second best guesser at 12.49, and the only entry ranked in the top two of both roles. The
 team with the strongest codemaster in the whole field, at 11.46, finished fourth
 overall because their guesser ranked tenth.
 
